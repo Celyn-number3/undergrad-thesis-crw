@@ -36,18 +36,22 @@
 ```text
 .
 ├── docs/
-│   └── mcp-thesis-topic-plan.md   # 选题完整方案
+│   ├── mcp-thesis-topic-plan.md   # 选题完整方案
+│   ├── mcp-thesis-proposal.md     # 开题报告（Markdown）
+│   └── thesis-proposal.docx       # 开题报告（Word）
 └── README.md
 ```
 
 ## 文档
 
 - [选题完整方案](docs/mcp-thesis-topic-plan.md)
+- [开题报告（Markdown）](docs/mcp-thesis-proposal.md)
+- [开题报告（Word）](docs/thesis-proposal.docx)
 
 ## 进度
 
 - [x] 确定选题与研究方案
-- [ ] 开题报告
+- [x] 开题报告
 - [ ] 环境配置与数据探索
 - [ ] 实验一至实验四
 - [ ] 论文撰写
