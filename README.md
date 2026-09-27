@@ -38,7 +38,12 @@
 ├── docs/
 │   ├── mcp-thesis-topic-plan.md   # 选题完整方案
 │   ├── mcp-thesis-proposal.md     # 开题报告（Markdown）
-│   └── thesis-proposal.docx       # 开题报告（Word）
+│   ├── thesis-proposal.docx       # 开题报告（Word）
+│   ├── mcp-literature-review.md   # 文献综述（Markdown）
+│   ├── literature-review.docx     # 文献综述（Word）
+│   ├── mcp-foreign-translation.md # 外文翻译（Markdown）
+│   ├── foreign-translation.docx   # 外文翻译（Word）
+│   └── foreign-translation-original.pdf # 外文翻译原文
 └── README.md
 ```
 
@@ -47,11 +52,18 @@
 - [选题完整方案](docs/mcp-thesis-topic-plan.md)
 - [开题报告（Markdown）](docs/mcp-thesis-proposal.md)
 - [开题报告（Word）](docs/thesis-proposal.docx)
+- [文献综述（Markdown）](docs/mcp-literature-review.md)
+- [文献综述（Word）](docs/literature-review.docx)
+- [外文翻译（Markdown）](docs/mcp-foreign-translation.md)
+- [外文翻译（Word）](docs/foreign-translation.docx)
+- [外文翻译原文（PDF）](docs/foreign-translation-original.pdf)
 
 ## 进度
 
 - [x] 确定选题与研究方案
 - [x] 开题报告
+- [x] 文献综述
+- [x] 外文翻译
 - [ ] 环境配置与数据探索
 - [ ] 实验一至实验四（多模型对比、样本效率、模型规模、置信度校准与选择性预测）
 - [ ] 论文撰写
