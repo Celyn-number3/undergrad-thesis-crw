@@ -1,0 +1,9 @@
+# 数据与模型产物（体积大或可由脚本重新生成）
+data/raw/
+data/processed/
+outputs/checkpoints/
+models/
+logs/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/

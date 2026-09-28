@@ -1,0 +1,17 @@
+# PyTorch 需按 CUDA 版本单独安装，见 scripts/setup_env.sh
+transformers>=4.51
+peft>=0.15
+accelerate>=1.6
+bitsandbytes>=0.45
+datasets
+scikit-learn
+statsmodels
+scipy
+pandas
+numpy
+matplotlib
+seaborn
+jieba
+tqdm
+openpyxl
+modelscope

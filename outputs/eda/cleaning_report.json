@@ -1,0 +1,52 @@
+{
+  "raw": {
+    "train_list": 16157,
+    "eval_list": 2020,
+    "train_list_dist": {
+      "消极": 4690,
+      "中性": 4143,
+      "积极": 7324
+    },
+    "eval_list_dist": {
+      "消极": 574,
+      "中性": 560,
+      "积极": 886
+    }
+  },
+  "cleaning": {
+    "train_duplicates_removed": 3725,
+    "train_conflicting_texts_removed": 773,
+    "eval_duplicates_removed": 61,
+    "eval_conflicting_texts_removed": 9,
+    "eval_texts_also_in_train_same_label": 864,
+    "eval_texts_also_in_train_diff_label_removed_from_test": 228,
+    "train_texts_removed_for_leakage": 1092
+  },
+  "final": {
+    "train": 8802,
+    "val": 979,
+    "test": 1713,
+    "train_dist": {
+      "消极": 2044,
+      "中性": 1845,
+      "积极": 4913
+    },
+    "val_dist": {
+      "消极": 227,
+      "中性": 205,
+      "积极": 547
+    },
+    "test_dist": {
+      "消极": 461,
+      "中性": 438,
+      "积极": 814
+    }
+  },
+  "seed": 42,
+  "val_ratio": 0.1,
+  "labels": {
+    "0": "消极",
+    "1": "中性",
+    "2": "积极"
+  }
+}
