@@ -1,0 +1,47 @@
+{
+  "model": "Qwen3-8B_lora_r16_n1000_s42",
+  "accuracy": 0.7875,
+  "macro_f1": 0.7724,
+  "weighted_f1": 0.7882,
+  "per_class_f1": {
+    "消极": 0.8067,
+    "中性": 0.6682,
+    "积极": 0.8423
+  },
+  "confusion_matrix": [
+    [
+      361,
+      64,
+      36
+    ],
+    [
+      42,
+      299,
+      97
+    ],
+    [
+      31,
+      94,
+      689
+    ]
+  ],
+  "base_model": "Qwen3-8B",
+  "mode": "lora",
+  "seed": 42,
+  "load_4bit": false,
+  "rank": 16,
+  "lr": 0.0001,
+  "epochs": 3,
+  "batch_size": 16,
+  "train_size": 1000,
+  "best_val_macro_f1": 0.7384,
+  "val_macro_f1_history": [
+    0.6778,
+    0.7365,
+    0.7384
+  ],
+  "trainable_params": 43646976,
+  "peak_gpu_gb": 18.27,
+  "seconds": 541.2,
+  "peak_gpu_gb_total": 18.27
+}

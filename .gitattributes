@@ -1,0 +1,5 @@
+# 统一使用 LF 换行，避免 Windows 下的 CRLF 警告
+* text=auto eol=lf
+*.png binary
+*.pdf binary
+*.docx binary
