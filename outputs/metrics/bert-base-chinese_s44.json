@@ -1,0 +1,35 @@
+{
+  "model": "bert-base-chinese_s44",
+  "accuracy": 0.7776,
+  "macro_f1": 0.7524,
+  "weighted_f1": 0.7729,
+  "per_class_f1": {
+    "消极": 0.7864,
+    "中性": 0.6269,
+    "积极": 0.8438
+  },
+  "confusion_matrix": [
+    [
+      383,
+      41,
+      37
+    ],
+    [
+      80,
+      247,
+      111
+    ],
+    [
+      50,
+      62,
+      702
+    ]
+  ],
+  "base_model": "google-bert/bert-base-chinese",
+  "seed": 44,
+  "lr": 2e-05,
+  "batch_size": 32,
+  "best_val_macro_f1": 0.7582,
+  "epochs_run": 4,
+  "train_seconds": 65.0
+}
