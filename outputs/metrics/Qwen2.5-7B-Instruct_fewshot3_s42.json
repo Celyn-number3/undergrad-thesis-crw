@@ -1,0 +1,35 @@
+{
+  "model": "Qwen2.5-7B-Instruct_fewshot3_s42",
+  "accuracy": 0.7122,
+  "macro_f1": 0.6901,
+  "weighted_f1": 0.7121,
+  "per_class_f1": {
+    "消极": 0.7523,
+    "中性": 0.5318,
+    "积极": 0.7864
+  },
+  "confusion_matrix": [
+    [
+      416,
+      24,
+      21
+    ],
+    [
+      155,
+      226,
+      57
+    ],
+    [
+      74,
+      162,
+      578
+    ]
+  ],
+  "base_model": "Qwen2.5-7B-Instruct",
+  "mode": "fewshot",
+  "seed": 42,
+  "load_4bit": false,
+  "shots_per_class": 3,
+  "seconds": 255.2,
+  "peak_gpu_gb_total": 17.17
+}
