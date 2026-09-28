@@ -1,0 +1,46 @@
+{
+  "model": "Qwen2.5-7B-Instruct_lora_r16_s44",
+  "accuracy": 0.8295,
+  "macro_f1": 0.8114,
+  "weighted_f1": 0.8268,
+  "per_class_f1": {
+    "消极": 0.845,
+    "中性": 0.7096,
+    "积极": 0.8797
+  },
+  "confusion_matrix": [
+    [
+      387,
+      42,
+      32
+    ],
+    [
+      47,
+      292,
+      99
+    ],
+    [
+      21,
+      51,
+      742
+    ]
+  ],
+  "base_model": "Qwen2.5-7B-Instruct",
+  "mode": "lora",
+  "seed": 44,
+  "load_4bit": false,
+  "rank": 16,
+  "lr": 0.0001,
+  "epochs": 2,
+  "batch_size": 16,
+  "train_size": 8802,
+  "best_val_macro_f1": 0.7851,
+  "val_macro_f1_history": [
+    0.7472,
+    0.7851
+  ],
+  "trainable_params": 40370176,
+  "peak_gpu_gb": 17.04,
+  "seconds": 1865.9,
+  "peak_gpu_gb_total": 17.04
+}
