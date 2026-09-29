@@ -1,0 +1,139 @@
+{
+  "组": {
+    "BERT": [
+      0.7525,
+      0.7692,
+      0.7524
+    ],
+    "RoBERTa": [
+      0.7806,
+      0.7819,
+      0.7727
+    ],
+    "Qwen3-8B LoRA": [
+      0.7999,
+      0.8011,
+      0.8032
+    ],
+    "Qwen2.5-7B LoRA": [
+      0.7989,
+      0.8121,
+      0.8114
+    ],
+    "GLM-4-9B LoRA": [
+      0.7988,
+      0.8017,
+      0.7935
+    ]
+  },
+  "ANOVA": {
+    "F": 31.874,
+    "p": 1.147e-05
+  },
+  "Levene": {
+    "W": 0.262,
+    "p": 0.8957
+  },
+  "Welch_ANOVA": {
+    "F": 19.843,
+    "df1": 4,
+    "df2": 4.49,
+    "p": 0.00438
+  },
+  "Tukey_HSD": [
+    {
+      "group1": "BERT",
+      "group2": "GLM-4-9B LoRA",
+      "meandiff": 0.0399,
+      "p-adj": 0.0001,
+      "lower": 0.0232,
+      "upper": 0.0567,
+      "reject": true
+    },
+    {
+      "group1": "BERT",
+      "group2": "Qwen2.5-7B LoRA",
+      "meandiff": 0.0495,
+      "p-adj": 0.0,
+      "lower": 0.0327,
+      "upper": 0.0662,
+      "reject": true
+    },
+    {
+      "group1": "BERT",
+      "group2": "Qwen3-8B LoRA",
+      "meandiff": 0.0434,
+      "p-adj": 0.0001,
+      "lower": 0.0267,
+      "upper": 0.0601,
+      "reject": true
+    },
+    {
+      "group1": "BERT",
+      "group2": "RoBERTa",
+      "meandiff": 0.0204,
+      "p-adj": 0.0165,
+      "lower": 0.0036,
+      "upper": 0.0371,
+      "reject": true
+    },
+    {
+      "group1": "GLM-4-9B LoRA",
+      "group2": "Qwen2.5-7B LoRA",
+      "meandiff": 0.0095,
+      "p-adj": 0.389,
+      "lower": -0.0072,
+      "upper": 0.0262,
+      "reject": false
+    },
+    {
+      "group1": "GLM-4-9B LoRA",
+      "group2": "Qwen3-8B LoRA",
+      "meandiff": 0.0034,
+      "p-adj": 0.9575,
+      "lower": -0.0133,
+      "upper": 0.0202,
+      "reject": false
+    },
+    {
+      "group1": "GLM-4-9B LoRA",
+      "group2": "RoBERTa",
+      "meandiff": -0.0196,
+      "p-adj": 0.021,
+      "lower": -0.0363,
+      "upper": -0.0028,
+      "reject": true
+    },
+    {
+      "group1": "Qwen2.5-7B LoRA",
+      "group2": "Qwen3-8B LoRA",
+      "meandiff": -0.0061,
+      "p-adj": 0.7535,
+      "lower": -0.0228,
+      "upper": 0.0106,
+      "reject": false
+    },
+    {
+      "group1": "Qwen2.5-7B LoRA",
+      "group2": "RoBERTa",
+      "meandiff": -0.0291,
+      "p-adj": 0.0014,
+      "lower": -0.0458,
+      "upper": -0.0124,
+      "reject": true
+    },
+    {
+      "group1": "Qwen3-8B LoRA",
+      "group2": "RoBERTa",
+      "meandiff": -0.023,
+      "p-adj": 0.0076,
+      "lower": -0.0397,
+      "upper": -0.0063,
+      "reject": true
+    }
+  ],
+  "ANOVA_仅LoRA大模型": {
+    "F": 2.776,
+    "p": 0.1401
+  }
+}
