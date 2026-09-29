@@ -1,0 +1,46 @@
+{
+  "model": "glm-4-9b-chat-hf_lora_r16_s42",
+  "accuracy": 0.819,
+  "macro_f1": 0.7988,
+  "weighted_f1": 0.8159,
+  "per_class_f1": {
+    "消极": 0.8276,
+    "中性": 0.6936,
+    "积极": 0.8751
+  },
+  "confusion_matrix": [
+    [
+      384,
+      43,
+      34
+    ],
+    [
+      57,
+      283,
+      98
+    ],
+    [
+      26,
+      52,
+      736
+    ]
+  ],
+  "base_model": "glm-4-9b-chat-hf",
+  "mode": "lora",
+  "seed": 42,
+  "load_4bit": false,
+  "rank": 16,
+  "lr": 0.0001,
+  "epochs": 2,
+  "batch_size": 16,
+  "train_size": 8802,
+  "best_val_macro_f1": 0.7903,
+  "val_macro_f1_history": [
+    0.7654,
+    0.7903
+  ],
+  "trainable_params": 27443200,
+  "peak_gpu_gb": 20.41,
+  "seconds": 1918.5,
+  "peak_gpu_gb_total": 20.41
+}

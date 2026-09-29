@@ -1,0 +1,35 @@
+{
+  "model": "glm-4-9b-chat-hf_fewshot1_s42",
+  "accuracy": 0.6381,
+  "macro_f1": 0.6296,
+  "weighted_f1": 0.6411,
+  "per_class_f1": {
+    "消极": 0.7184,
+    "中性": 0.4939,
+    "积极": 0.6764
+  },
+  "confusion_matrix": [
+    [
+      412,
+      39,
+      10
+    ],
+    [
+      162,
+      243,
+      33
+    ],
+    [
+      112,
+      264,
+      438
+    ]
+  ],
+  "base_model": "glm-4-9b-chat-hf",
+  "mode": "fewshot",
+  "seed": 42,
+  "load_4bit": false,
+  "shots_per_class": 1,
+  "seconds": 142.1,
+  "peak_gpu_gb_total": 20.24
+}
