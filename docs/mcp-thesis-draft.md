@@ -4,7 +4,7 @@
 
 本文以中文金融社交媒体情感三分类数据集 FinFE 为对象，在单张 RTX 3090 显卡上比较了 TF-IDF 配合逻辑回归和支持向量机、BERT 与 RoBERTa-wwm-ext 微调，以及 Qwen3-8B、Qwen2.5-7B-Instruct、GLM-4-9B 三个开源大模型的零样本、少样本提示与 LoRA 微调，并从统计推断、置信度可靠性和数据质量三个角度进行分析。
 
-研究发现：（1）公开数据的评估集中有 54% 的文本原样出现在训练集中，这种数据泄漏使 TF-IDF 基线的宏平均 F1 虚高 8.1 个百分点，并把其与 RoBERTa 的真实差距缩小约三分之二；本文据此重新构建了无泄漏的数据划分。（2）LoRA 微调的大模型宏平均 F1 为 0.798～0.807，高于 RoBERTa 的 0.778 和 TF-IDF 的 0.70，零样本和少样本提示则明显不及有监督微调。（3）以多随机种子方差分析衡量训练随机性时，大模型的优势显著；以 McNemar 检验和配对 Bootstrap 衡量测试样本抽样误差时，约 2 个百分点的优势仅边缘显著或不显著，说明该优势稳定但幅度较小。（4）零样本大模型平均置信度达 96.4%，而准确率仅 67.1%；LoRA 微调与温度缩放可将期望校准误差降至 0.013～0.030，只处理置信度最高的 50% 样本时准确率约为 96%。（5）重复标注样本的一致率为 82.9%（κ = 0.735），据此估计准确率上限约为 91%，且 82% 的标注冲突涉及中性类，解释了中性类识别困难的原因。此外，4 比特 QLoRA 在峰值显存 11.2 GB 下取得了与 16 位 LoRA 相当的效果。
+研究发现：（1）公开数据的评估集中有 54% 的文本原样出现在训练集中，这种数据泄漏使 TF-IDF 基线的宏平均 F1 虚高 8.1 个百分点，并把其与 RoBERTa 的真实差距缩小约三分之二；本文据此重新构建了无泄漏的数据划分。（2）LoRA 微调的大模型宏平均 F1 为 0.798～0.807，高于 RoBERTa 的 0.778 和 TF-IDF 的 0.70，零样本和少样本提示则明显不及有监督微调。（3）以多随机种子方差分析衡量训练随机性时，大模型的优势显著；以 McNemar 检验和配对 Bootstrap 衡量测试样本抽样误差时，约 2 个百分点的优势仅边缘显著或不显著，说明该优势稳定但幅度较小。（4）零样本大模型平均置信度达 96.4%，而准确率仅 67.1%；LoRA 微调与温度缩放可将期望校准误差降至 0.013～0.030，只处理置信度最高的 50% 样本时准确率约为 96%；保形预测可在保证 90% 覆盖率的同时，对约 78% 的评论给出唯一类别。（5）重复标注样本的一致率为 82.9%（κ = 0.735），据此估计准确率上限约为 91%，且 82% 的标注冲突涉及中性类，解释了中性类识别困难的原因。此外，4 比特 QLoRA 在峰值显存 11.2 GB 下取得了与 16 位 LoRA 相当的效果。
 
 本文的结果表明，在评估大模型时应同时关注数据质量、统计显著性和置信度的可靠性，可为金融机构开展舆情监测时的模型选型与人机协作提供参考。
 
@@ -16,7 +16,7 @@ Investor comments on financial social media contain rich sentiment information, 
 
 Using FinFE, a three-class Chinese financial social-media sentiment dataset, this thesis compares TF-IDF with logistic regression and support vector machines, fine-tuned BERT and RoBERTa-wwm-ext, and zero-shot prompting, few-shot prompting and LoRA fine-tuning of three open-source LLMs (Qwen3-8B, Qwen2.5-7B-Instruct and GLM-4-9B) on a single RTX 3090 GPU. The results are analysed from three perspectives: statistical inference, confidence reliability and data quality.
 
-The main findings are as follows. (1) In the public data, 54% of the evaluation texts also appear verbatim in the training set. This leakage inflates the macro-F1 of the TF-IDF baseline by 8.1 percentage points and hides about two-thirds of its true gap to RoBERTa; a leakage-free split is therefore constructed. (2) LoRA-tuned LLMs reach a macro-F1 of 0.798–0.807, higher than RoBERTa (0.778) and TF-IDF (0.70), while zero-shot and few-shot prompting fall clearly behind supervised fine-tuning. (3) When training randomness is measured by multi-seed ANOVA, the LLMs' advantage is significant; when test-sample variability is measured by McNemar tests and paired bootstrap, the advantage of about 2 points is only marginally significant or not significant, indicating a stable but small improvement. (4) Zero-shot LLMs are severely overconfident, with a mean confidence of 96.4% against an accuracy of 67.1%. LoRA fine-tuning plus temperature scaling reduces the expected calibration error to 0.013–0.030, and accuracy reaches about 96% when only the 50% most confident samples are answered. (5) Repeatedly annotated texts show an agreement rate of 82.9% (κ = 0.735), implying an accuracy ceiling of about 91%; 82% of annotation conflicts involve the neutral class, which explains why this class is hardest to recognise. In addition, 4-bit QLoRA matches 16-bit LoRA with a peak memory of only 11.2 GB.
+The main findings are as follows. (1) In the public data, 54% of the evaluation texts also appear verbatim in the training set. This leakage inflates the macro-F1 of the TF-IDF baseline by 8.1 percentage points and hides about two-thirds of its true gap to RoBERTa; a leakage-free split is therefore constructed. (2) LoRA-tuned LLMs reach a macro-F1 of 0.798–0.807, higher than RoBERTa (0.778) and TF-IDF (0.70), while zero-shot and few-shot prompting fall clearly behind supervised fine-tuning. (3) When training randomness is measured by multi-seed ANOVA, the LLMs' advantage is significant; when test-sample variability is measured by McNemar tests and paired bootstrap, the advantage of about 2 points is only marginally significant or not significant, indicating a stable but small improvement. (4) Zero-shot LLMs are severely overconfident, with a mean confidence of 96.4% against an accuracy of 67.1%. LoRA fine-tuning plus temperature scaling reduces the expected calibration error to 0.013–0.030, accuracy reaches about 96% when only the 50% most confident samples are answered, and conformal prediction guarantees 90% coverage while returning a single label for about 78% of comments. (5) Repeatedly annotated texts show an agreement rate of 82.9% (κ = 0.735), implying an accuracy ceiling of about 91%; 82% of annotation conflicts involve the neutral class, which explains why this class is hardest to recognise. In addition, 4-bit QLoRA matches 16-bit LoRA with a peak memory of only 11.2 GB.
 
 These results suggest that evaluations of LLMs should jointly consider data quality, statistical significance and confidence reliability, and they provide a reference for model selection and human–machine collaboration in financial public-opinion monitoring.
 
@@ -64,7 +64,7 @@ These results suggest that evaluations of LLMs should jointly consider data qual
 
 （3）**差异的统计推断。** 对需要训练的模型各进行 3 次不同随机种子的独立训练，使用方差分析与 Tukey 事后检验、经 Holm 校正的 McNemar 检验、配对 Bootstrap 置信区间，从不同角度判断模型差异是否显著。
 
-（4）**置信度校准与选择性预测。** 基于标签词的 logit 提取大模型的类别概率，计算期望校准误差（ECE）并绘制可靠性图，检验温度缩放的效果；绘制覆盖率—准确率曲线，比较各模型的 AURC。
+（4）**置信度校准与选择性预测。** 基于标签词的 logit 提取大模型的类别概率，计算期望校准误差（ECE）并绘制可靠性图，检验温度缩放的效果；绘制覆盖率—准确率曲线，比较各模型的 AURC；并用保形预测给出有覆盖率保证的预测集合。此外，评估了开源决策模型 Laya 的零样本表现。
 
 （5）**消融实验。** 考察训练样本量、LoRA 秩和 4 比特量化对微调效果与显存占用的影响。
 
@@ -78,7 +78,7 @@ These results suggest that evaluations of LLMs should jointly consider data qual
 
 第二，**区分了两种不确定性来源，对模型差异做出更稳健的判断。** 本文同时使用多种子方差分析（反映训练随机性）以及配对 Bootstrap 和 McNemar 检验（反映测试样本抽样误差）。结果显示，LoRA 大模型相对 RoBERTa 约 2 个百分点的优势，在前一种检验下显著，在后一种检验下仅边缘显著或不显著，由此得出“优势稳定但幅度较小”的审慎结论。
 
-第三，**将校准分析与选择性预测引入中文金融情感分类的大模型评估。** 零样本大模型的平均置信度为 96.4%，实际准确率仅为 67.1%；LoRA 微调后过度自信明显缓解，温度缩放可进一步将 ECE 降至 0.013～0.030。在选择性预测中，LoRA 大模型只处理置信度最高的 50% 样本时准确率约为 96%。
+第三，**将校准分析与选择性预测引入中文金融情感分类的大模型评估。** 零样本大模型的平均置信度为 96.4%，实际准确率仅为 67.1%；LoRA 微调后过度自信明显缓解，温度缩放可进一步将 ECE 降至 0.013～0.030。在选择性预测中，LoRA 大模型只处理置信度最高的 50% 样本时准确率约为 96%。进一步引入保形预测后，LoRA 大模型约 78% 的评论可给出有 90% 覆盖率保证的唯一类别；按类别校准还解决了标准做法下中性类覆盖率偏低（0.76～0.81）的问题。
 
 第四，**利用重复标注估计了数据集的标注噪声和准确率上限。** 同一文本两次标注的一致率为 82.9%（κ = 0.735），据此估计标注准确率约为 91%，可视为模型准确率的近似上限；82% 的标注冲突涉及中性类，说明中性类识别困难在很大程度上源于标注本身的模糊性。
 
@@ -88,11 +88,11 @@ These results suggest that evaluations of LLMs should jointly consider data qual
 
 第 1 章为绪论，介绍研究背景、研究问题与意义、研究内容、创新点和论文结构。
 
-第 2 章为相关理论与方法，介绍文本表示与传统分类方法、Transformer 与预训练语言模型、大语言模型及 LoRA 微调原理，以及模型比较的统计检验、置信度校准与选择性预测等方法。
+第 2 章为相关理论与方法，介绍文本表示与传统分类方法、Transformer 与预训练语言模型、大语言模型及 LoRA 微调原理，以及模型比较的统计检验、置信度校准、选择性预测与保形预测等方法。
 
 第 3 章为数据与研究方法，介绍 FinFE 数据集的来源、质量检查与清洗过程、探索性分析，以及各模型的实验设置与评价指标。
 
-第 4 章为实验结果与分析，报告各模型的性能比较、统计检验、校准与选择性预测、消融实验、数据泄漏与标注噪声分析的结果。
+第 4 章为实验结果与分析，报告各模型的性能比较、统计检验、校准与选择性预测、消融实验、数据泄漏与标注噪声分析、保形预测以及开源决策模型的结果。
 
 第 5 章为结论与展望，总结主要结论，讨论研究的不足，并展望将情感分类结果用于股价预测等后续研究方向。
 
@@ -254,23 +254,37 @@ T > 1 会使概率分布更“平”，降低过高的置信度；T < 1 则相�
 
 阈值越高，覆盖率越低，但被回答样本的准确率通常越高。将阈值从高到低变化，可以得到风险—覆盖率曲线，曲线下面积 AURC（area under the risk-coverage curve）综合反映了模型的置信度排序能力：AURC 越小，说明模型越能把错误样本排在低置信度的位置。与 ECE 关注“置信度的数值是否准确”不同，AURC 关注“置信度的高低顺序是否合理”。
 
-## 2.9 标注一致性与标签噪声
+## 2.9 保形预测
+
+选择性预测只能给出“回答或不回答”，保形预测（conformal prediction）[31,32] 则给出一个类别集合，并提供有限样本下的覆盖率保证。以分割保形预测为例：取一组未参与训练的校准样本，计算每个样本的非一致性分数 s_i = 1 − p(y_i | x_i)，即模型给真实类别的概率越低，分数越高；取分数的修正分位数
+
+　　q̂ = s 的第 ⌈(n+1)(1−α)⌉ 个次序统计量　　（2-14）
+
+对新样本输出集合 C(x) = {k : 1 − p_k(x) ≤ q̂}。只要校准样本与新样本是可交换的（如独立同分布），就有
+
+　　P( y ∈ C(x) ) ≥ 1 − α　　（2-15）
+
+这一保证不依赖于模型是否校准良好，也不要求任何分布假设。模型越好，达到同样覆盖率所需的集合越小，因此平均集合大小可以作为衡量模型有效信息量的指标。
+
+需要注意的是，式（2-15）只保证整体（边际）覆盖率，某些困难类别的覆盖率可能低于 1 − α。Mondrian 保形预测[31] 对每一类别分别计算 q̂，从而保证每一类各自的覆盖率不低于 1 − α。
+
+## 2.10 标注一致性与标签噪声
 
 有监督学习以人工标注为“标准答案”，但人工标注本身可能有误。若同一文本被独立标注两次，两次标注相同的比例称为观察一致率 p_o。为扣除偶然一致的部分，Cohen 提出 κ 系数：
 
-　　κ = (p_o − p_e) / (1 − p_e)　　（2-14）
+　　κ = (p_o − p_e) / (1 − p_e)　　（2-16）
 
 其中 p_e 为按各类别的标注比例计算的偶然一致率。κ 为 1 表示完全一致，为 0 表示一致程度与随机标注相同。
 
 进一步，若假设每次标注以概率 q 给出正确类别，出错时等可能地给出其余两个类别之一，则两次标注一致的概率为 p_o = q² + (1 − q)²/2。解此方程可得：
 
-　　q = [1 + √(6p_o − 2)] / 3　　（2-15）
+　　q = [1 + √(6p_o − 2)] / 3　　（2-17）
 
 q 可理解为单次标注的准确率。由于测试集标签本身也以 q 的概率正确，即使模型完全掌握了真实情感，其与测试标签的一致率一般也难以明显超过 q，因此 q 可作为模型准确率的近似上限。需要注意的是，该模型假设各类别的出错概率相同，只是一种简化。
 
-## 2.10 本章小结
+## 2.11 本章小结
 
-本章介绍了本文所用方法的理论基础。在模型方面，TF-IDF 配合逻辑回归和 SVM 代表传统机器学习方法，RoBERTa-wwm-ext 代表预训练语言模型，Qwen3-8B 等开源大模型通过提示或 LoRA、QLoRA 微调完成分类，并通过标签词概率提取得到类别概率。在评价方面，本文以宏平均 F1 为主要指标，用方差分析和 Tukey 检验处理训练随机性，用 McNemar 检验、配对 Bootstrap 和 Holm 校正处理测试样本抽样误差，用 ECE、温度缩放和 AURC 评估置信度的可靠性，并用 κ 系数和简化噪声模型估计标注质量。第 3 章将在此基础上介绍数据处理与实验设计。
+本章介绍了本文所用方法的理论基础。在模型方面，TF-IDF 配合逻辑回归和 SVM 代表传统机器学习方法，RoBERTa-wwm-ext 代表预训练语言模型，Qwen3-8B 等开源大模型通过提示或 LoRA、QLoRA 微调完成分类，并通过标签词概率提取得到类别概率。在评价方面，本文以宏平均 F1 为主要指标，用方差分析和 Tukey 检验处理训练随机性，用 McNemar 检验、配对 Bootstrap 和 Holm 校正处理测试样本抽样误差，用 ECE、温度缩放、AURC 和保形预测评估置信度的可靠性，并用 κ 系数和简化噪声模型估计标注质量。第 3 章将在此基础上介绍数据处理与实验设计。
 
 # 第3章 数据与研究方法
 
@@ -496,7 +510,7 @@ ECE = Σ_m (|B_m| / n) · |acc(B_m) − conf(B_m)|
 
 第一，LoRA 微调后的三个大模型取得了最好的效果，Macro-F1 在 0.798～0.807 之间，准确率在 81.8%～82.6% 之间。其中 Qwen2.5-7B 的平均 Macro-F1 最高（0.807），但三个大模型之间的差距不超过 0.01。
 
-第二，不经微调的大模型表现较差。三个模型零样本的 Macro-F1 只有 0.644～0.666，甚至低于最简单的 TF-IDF + 逻辑回归（0.702）。这与 DISC-FinLLM[31] 等研究报告的通用大模型在 FinFE 上准确率约为 60%～69% 的结论一致，说明通用大模型虽然具备一般的语言理解能力，但并不熟悉股民评论的表达习惯和标注标准。
+第二，不经微调的大模型表现较差。三个模型零样本的 Macro-F1 只有 0.644～0.666，甚至低于最简单的 TF-IDF + 逻辑回归（0.702）。这与 DISC-FinLLM[33] 等研究报告的通用大模型在 FinFE 上准确率约为 60%～69% 的结论一致，说明通用大模型虽然具备一般的语言理解能力，但并不熟悉股民评论的表达习惯和标注标准。
 
 第三，提供示例的作用有限且不稳定。每类给出 3 个示例时，Qwen3-8B 的 Macro-F1 从 0.644 提高到 0.696，Qwen2.5-7B 从 0.666 提高到 0.690，而 GLM-4-9B 反而从 0.661 下降到 0.627。每类只给 1 个示例时，GLM-4-9B 同样下降（0.630），Qwen2.5-7B 基本不变（0.666）。可见少样本提示的效果因模型而异，远不如微调可靠。
 
@@ -699,9 +713,57 @@ FinFE 中有 5575 条文本被标注了两次及以上，共形成 6048 对“�
 
 需要说明的是，被重复标注的文本平均长度（18.5 个字符）略短于全部文本（21.1 个字符），并非完全随机的样本，且上述噪声模型假设各类错误等可能发生，因此 91% 的上限应视为粗略估计。
 
-## 4.8 本章小结
+## 4.8 保形预测
 
-本章从分类效果、统计显著性、校准、选择性预测和数据质量五个方面对实验结果进行了分析，主要结论如下：
+4.3 和 4.4 节分析了置信度“准不准”和“排序好不好”，但都不能直接回答“模型给出的答案有多大把握包含正确类别”。保形预测（conformal prediction）[31,32] 可以回答这个问题：它不输出单个类别，而是输出一个类别集合，并在“校准样本与测试样本可交换”的条件下保证集合包含真实类别的概率不低于 1 − α，且不依赖于模型本身是否校准良好。
+
+本文采用分割保形预测。以 s = 1 − p(真实类) 为非一致性分数，把测试集随机对半分为校准集和评估集：在校准集上取 s 的 ⌈(n+1)(1−α)⌉/n 分位数 q̂，在评估集上输出集合 {k : 1 − p_k ≤ q̂}。为避免单次划分的偶然性，重复划分 1000 次取平均。除这种“标准”做法外，本文还采用按类别分别校准的 Mondrian 保形预测[31]，即对每一类单独计算 q̂，以保证每一类各自的覆盖率。结果见表 4-11。
+
+> 表 4-11 保形预测结果（目标覆盖率 90%，种子 42，1000 次随机划分均值）
+
+| 模型 | 方法 | 覆盖率 | 平均集合大小 | 单元素集合比例 | 消极覆盖率 | 中性覆盖率 | 积极覆盖率 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| TF-IDF + LR | 标准 | 0.901 | 1.580 | 52.9% | 0.908 | 0.783 | 0.960 |
+| TF-IDF + LR | 按类别 | 0.901 | 1.609 | 47.3% | 0.901 | 0.901 | 0.901 |
+| RoBERTa-wwm-ext | 标准 | 0.900 | 1.276 | 74.9% | 0.920 | 0.762 | 0.964 |
+| RoBERTa-wwm-ext | 按类别 | 0.902 | 1.354 | 65.9% | 0.902 | 0.902 | 0.901 |
+| Qwen3-8B 零样本 | 标准 | 0.901 | 1.907 | 40.8% | 0.998 | 0.769 | 0.918 |
+| Qwen3-8B LoRA | 标准 | 0.901 | 1.249 | 77.8% | 0.907 | 0.777 | 0.964 |
+| Qwen3-8B LoRA | 按类别 | 0.902 | 1.296 | 71.1% | 0.902 | 0.903 | 0.902 |
+| Qwen2.5-7B LoRA | 标准 | 0.902 | 1.250 | 76.9% | 0.932 | 0.759 | 0.961 |
+| Qwen2.5-7B LoRA | 按类别 | 0.902 | 1.285 | 72.5% | 0.903 | 0.902 | 0.901 |
+| GLM-4-9B LoRA | 标准 | 0.901 | 1.246 | 77.8% | 0.896 | 0.805 | 0.955 |
+| GLM-4-9B LoRA | 按类别 | 0.902 | 1.319 | 69.9% | 0.903 | 0.904 | 0.900 |
+
+注：目标覆盖率 95% 的结果见 outputs/analysis/conformal.csv，结论相同。
+
+从表 4-11 可以得到以下结论。
+
+第一，保形预测的覆盖率保证在所有模型上都成立。无论模型本身校准好坏，实际覆盖率都在 0.900～0.902 之间，与目标 90% 几乎一致，验证了这一方法“与模型无关”的性质。
+
+第二，模型越好，预测集合越小。覆盖率相同时，平均集合大小直接反映模型的有效信息量：LoRA 大模型约为 1.25，即约 78% 的评论只需给出一个类别；RoBERTa 为 1.28；TF-IDF 为 1.58；Qwen3-8B 零样本为 1.91，接近“三类中排除一类”。这从另一个角度印证了 4.1 节的排序，而且比准确率更直观：对 LoRA 大模型而言，约四分之三的评论可以给出有 90% 保证的唯一答案，其余评论则以“中性或积极”等形式交由人工判断。
+
+第三，标准做法只保证整体覆盖率，中性类的覆盖率明显偏低。在标准做法下，各模型中性类的覆盖率只有 0.76～0.81，而积极类高达 0.96，说明整体 90% 的保证是靠“容易的类别多覆盖、难的类别少覆盖”换来的。按类别校准后，三类的覆盖率都达到 0.90，代价只是平均集合大小增加 0.03～0.08。对于舆情监测等不希望系统性漏判某一类情绪的场景，按类别校准更为合适。这一结果也与 4.7 节“中性类标注分歧最大”的发现相互印证。
+
+第四，零样本大模型的概率大量取到 0 或 1 的极端值，分数出现大量并列，导致其在按类别校准和 95% 目标下出现过度覆盖（例如 95% 目标下实际覆盖率 0.988、平均集合大小 2.87），集合几乎失去区分度。这说明保形预测虽然能保证覆盖率，但集合是否有用仍取决于模型概率的质量。
+
+## 4.9 开源决策模型的零样本表现
+
+近来出现了一类不生成文字、只在给定选项中选择并输出校准概率的“决策模型”，如闭源的 Jev 和开源的 Laya[34]。这类模型与本文“读取标签词概率”的思路相近，且宣称其概率经过专门训练而校准良好。为检验这类模型能否直接用于中文金融情感分类，本文在测试集上评估了 Laya 的多语言版本（以 mmBERT-base 为底座，约 3.2 亿参数），分别用中文和英文描述三个类别的判定标准，不做任何训练。结果见表 4-12。
+
+> 表 4-12 Laya 零样本结果
+
+| 模型 | 准确率 | Macro-F1 | 中性类 F1 | ECE | 平均置信度 | 1713 条耗时 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Laya（中文标准） | 0.552 | 0.472 | 0.181 | 0.182 | 0.734 | 36 秒 |
+| Laya（英文标准） | 0.555 | 0.501 | 0.274 | 0.246 | 0.800 | 36 秒 |
+| Qwen3-8B 零样本 | 0.671 | 0.644 | — | 0.294 | 0.964 | — |
+
+结果表明，Laya 的零样本 Macro-F1 仅为 0.47～0.50，低于三个零样本大模型和 TF-IDF 基线；其主要问题是几乎无法识别中性类，大部分中性评论被判为消极。其 ECE 为 0.18～0.25，虽低于 Qwen3-8B 零样本，但远高于 LoRA 大模型经温度缩放后的 0.013～0.030。它的优势在于速度，1713 条评论仅需 36 秒。这一结果说明，即使是以“校准良好”为设计目标的模型，迁移到中文金融社交媒体这一新领域时，准确率和置信度都需要在目标数据上重新检验和校准。
+
+## 4.10 本章小结
+
+本章从分类效果、统计显著性、校准、选择性预测、保形预测和数据质量等方面对实验结果进行了分析，主要结论如下：
 
 1. LoRA 微调是提升大模型效果的关键。三个大模型经 LoRA 微调后，Macro-F1 从零样本的 0.64～0.67 提升到 0.80 左右，而少样本提示的效果有限且不稳定。
 2. LoRA 微调后的大模型相对 RoBERTa 具有稳定但幅度较小的优势（约 2 个百分点）。这一优势在多种子方差分析中显著，在配对 Bootstrap 中边缘显著，在 McNemar 检验中不显著；三个大模型之间没有显著差异。
@@ -711,6 +773,8 @@ FinFE 中有 5575 条文本被标注了两次及以上，共形成 6048 对“�
 6. 中性类是所有模型的共同难点：重复标注中 82% 的冲突涉及中性类，说明其边界本身存在主观分歧。
 7. 数据泄露会让模型“背答案”，使 TF-IDF 的分数虚高 8.1 个百分点，并把 TF-IDF 与 RoBERTa 的真实差距缩小约三分之二；清洗数据没有明显损害模型的泛化能力。
 8. 重复标注的一致率仅为 82.9%（κ = 0.735），据此估计该数据集的准确率上限约为 91%；LoRA 大模型与标签的一致率已接近人工标注之间的一致率。
+9. 保形预测在所有模型上都达到了目标覆盖率；LoRA 大模型的预测集合最小，约 78% 的评论可给出有 90% 保证的唯一类别。标准做法下中性类覆盖率只有 0.76～0.81，按类别校准可使三类覆盖率均达到 90%，代价很小。
+10. 开源决策模型 Laya 的零样本 Macro-F1 仅为 0.47～0.50，校准也不理想，说明宣称校准良好的通用模型迁移到中文金融领域时仍需重新检验。
 
 
 # 第5章 结论与展望
@@ -725,7 +789,7 @@ FinFE 中有 5575 条文本被标注了两次及以上，共形成 6048 对“�
 
 **（3）统计显著性的结论取决于所考虑的不确定性来源。** 以 3 个随机种子反映训练随机性时，三个 LoRA 大模型都显著优于 RoBERTa（Tukey 检验 p = 0.0014～0.021）；以测试样本抽样误差为依据时，McNemar 检验经 Holm 校正后不显著（p = 0.55～0.69），配对 Bootstrap 的 F1 差值约为 0.018～0.019，95% 置信区间下限接近或略低于 0。因此，LoRA 大模型的优势是稳定的，但幅度只有约 2 个百分点，在 1713 条的测试集上难以被严格证实。
 
-**（4）零样本大模型严重过度自信，微调和温度缩放可以有效改善。** 零样本 Qwen3-8B 的平均置信度为 96.4%，而准确率只有 67.1%，ECE 为 0.294；LoRA 微调后 ECE 降至 0.035～0.085，再经温度缩放可降至 0.013～0.030。选择性预测结果表明，LoRA 大模型只处理置信度最高的 50% 样本时准确率约为 96%，处理 80% 样本时约为 89%，AURC 优于 RoBERTa，适合“模型处理高置信度样本、人工复核低置信度样本”的应用方式。
+**（4）零样本大模型严重过度自信，微调和温度缩放可以有效改善。** 零样本 Qwen3-8B 的平均置信度为 96.4%，而准确率只有 67.1%，ECE 为 0.294；LoRA 微调后 ECE 降至 0.035～0.085，再经温度缩放可降至 0.013～0.030。选择性预测结果表明，LoRA 大模型只处理置信度最高的 50% 样本时准确率约为 96%，处理 80% 样本时约为 89%，AURC 优于 RoBERTa，适合“模型处理高置信度样本、人工复核低置信度样本”的应用方式。保形预测在所有模型上都达到了 90% 的目标覆盖率，LoRA 大模型约 78% 的评论只需给出一个类别；按类别校准可将中性类覆盖率从 0.76～0.81 提高到 0.90。此外，宣称校准良好的开源决策模型 Laya 在零样本下 Macro-F1 仅为 0.47～0.50，说明通用模型迁移到中文金融领域时仍需在目标数据上重新检验。
 
 **（5）LoRA 微调对超参数不敏感，资源需求较低。** 训练样本量从 500 条增加到全量，F1 从 0.766 提升到 0.800，边际收益逐渐递减；LoRA 秩在 4～32 之间变化时 F1 稳定在 0.798～0.809；4 比特 QLoRA 的 F1 为 0.807，与 16 位精度相当，峰值显存仅 11.2 GB。
 
@@ -823,4 +887,10 @@ FinFE 中有 5575 条文本被标注了两次及以上，共形成 6048 对“�
 
 [30] Geifman Y, El-Yaniv R. Selective classification for deep neural networks[C]//Advances in Neural Information Processing Systems. 2017.
 
-[31] Chen W, Wang Q, Long Z, et al. DISC-FinLLM: A Chinese financial large language model based on multiple experts fine-tuning[J]. arXiv preprint arXiv:2310.15205, 2023.
+[31] Vovk V, Gammerman A, Shafer G. Algorithmic learning in a random world[M]. New York: Springer, 2005.
+
+[32] Angelopoulos A N, Bates S. Conformal prediction: A gentle introduction[J]. Foundations and Trends in Machine Learning, 2023, 16(4): 494-591.
+
+[33] Chen W, Wang Q, Long Z, et al. DISC-FinLLM: A Chinese financial large language model based on multiple experts fine-tuning[J]. arXiv preprint arXiv:2310.15205, 2023.
+
+[34] ConvAI Innovations. Laya: open-weight System One decision models[EB/OL]. (2026)[2026-09-30]. https://huggingface.co/convaiinnovations/laya.

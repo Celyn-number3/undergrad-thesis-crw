@@ -19,6 +19,11 @@ KEYS = {
     "Chen 等, 2023": "Chen W, Wang Q, Long Z, et al. DISC-FinLLM: A Chinese financial large language model "
                      "based on multiple experts fine-tuning[J]. arXiv preprint arXiv:2310.15205, 2023.",
 }
+KEYS.update({
+    "Vovk 等, 2005": "Vovk V, Gammerman A, Shafer G. Algorithmic learning in a random world[M]. New York: Springer, 2005.",
+    "Angelopoulos 和 Bates, 2023": "Angelopoulos A N, Bates S. Conformal prediction: A gentle introduction[J]. Foundations and Trends in Machine Learning, 2023, 16(4): 494-591.",
+    "ConvAI Innovations, 2026": "ConvAI Innovations. Laya: open-weight System One decision models[EB/OL]. (2026)[2026-09-30]. https://huggingface.co/convaiinnovations/laya.",
+})
 NARR = {"Cui 等（2021）": "Cui 等, 2021"}  # 叙述式引用
 
 lit = io.open(D + "mcp-literature-review.md", encoding="utf-8").read()
