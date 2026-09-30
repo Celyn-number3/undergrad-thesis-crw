@@ -26,11 +26,11 @@ These results suggest that evaluations of LLMs should jointly consider data qual
 
 ## 1.1 研究背景
 
-随着互联网和移动终端的普及，股吧、雪球、微博等金融社交媒体已成为中国个人投资者获取信息、交流观点的重要渠道。投资者在这些平台上发布的大量短文本中蕴含着对个股、行业乃至整体市场的情绪倾向。已有研究表明，媒体和网络论坛中的投资者情绪与资产价格、交易量和市场波动存在显著关联 [Tetlock, 2007; 游家兴和吴静, 2012; 段江娇等, 2017; 部慧等, 2018]。因此，如何从海量金融文本中准确、自动地识别情感倾向，是金融科技和计量金融研究中的一个基础问题 [沈艳等, 2019]。
+随着互联网和移动终端的普及，股吧、雪球、微博等金融社交媒体已成为中国个人投资者获取信息、交流观点的重要渠道。投资者在这些平台上发布的大量短文本中蕴含着对个股、行业乃至整体市场的情绪倾向。已有研究表明，媒体和网络论坛中的投资者情绪与资产价格、交易量和市场波动存在显著关联[1-4]。因此，如何从海量金融文本中准确、自动地识别情感倾向，是金融科技和计量金融研究中的一个基础问题[5]。
 
-金融情感分析的方法经历了从情感词典、传统机器学习到预训练语言模型的演进。情感词典方法依赖人工构建的领域词表 [Loughran 和 McDonald, 2011]，可解释性强，但难以处理否定、反讽和上下文相关的表达。以 TF-IDF 特征配合逻辑回归、支持向量机为代表的传统机器学习方法，在有标注数据时效果明显提升，但仍停留在词袋层面。以 BERT [Devlin 等, 2019] 为代表的预训练语言模型通过“预训练 + 微调”范式大幅提升了文本分类效果，在金融领域也出现了 FinBERT [Araci, 2019] 以及面向中文的 RoBERTa-wwm-ext [Cui 等, 2021] 等模型。
+金融情感分析的方法经历了从情感词典、传统机器学习到预训练语言模型的演进。情感词典方法依赖人工构建的领域词表[6]，可解释性强，但难以处理否定、反讽和上下文相关的表达。以 TF-IDF 特征配合逻辑回归、支持向量机为代表的传统机器学习方法，在有标注数据时效果明显提升，但仍停留在词袋层面。以 BERT[7] 为代表的预训练语言模型通过“预训练 + 微调”范式大幅提升了文本分类效果，在金融领域也出现了 FinBERT[8] 以及面向中文的 RoBERTa-wwm-ext[9] 等模型。
 
-近年来，以 GPT 系列 [Brown 等, 2020] 和 Qwen3 [Yang 等, 2025] 为代表的大语言模型展现出强大的语言理解与生成能力，金融领域也出现了 BloombergGPT [Wu 等, 2023]、FinGPT [Yang 等, 2023] 等专门模型。但大模型参数量达数十亿，全参数微调的计算成本很高。LoRA [Hu 等, 2022] 和 QLoRA [Dettmers 等, 2023] 等参数高效微调方法只训练少量低秩参数，使 7B～9B 规模的模型可以在单张消费级显卡上完成微调，为普通研究者在特定任务上使用大模型提供了可能。
+近年来，以 GPT 系列[10] 和 Qwen3[11] 为代表的大语言模型展现出强大的语言理解与生成能力，金融领域也出现了 BloombergGPT[12]、FinGPT[13] 等专门模型。但大模型参数量达数十亿，全参数微调的计算成本很高。LoRA[14] 和 QLoRA[15] 等参数高效微调方法只训练少量低秩参数，使 7B～9B 规模的模型可以在单张消费级显卡上完成微调，为普通研究者在特定任务上使用大模型提供了可能。
 
 在这一背景下，一个自然的问题是：经过 LoRA 微调的开源大模型，在中文金融情感分类上究竟比传统方法和 BERT 类模型好多少？这种优势是否在统计意义上可靠？模型给出的置信度能否被信任？现有研究对这些问题的回答还不充分。
 
@@ -40,11 +40,11 @@ These results suggest that evaluations of LLMs should jointly consider data qual
 
 梳理相关文献（详见第 2 章）可以发现，现有研究在以下几个方面仍有不足：
 
-（1）**以英文数据为主。** 大模型金融情感分析的研究多基于 Financial PhraseBank [Malo 等, 2014]、FiQA 等英文数据集 [Zhang 等, 2023; Fatemi 和 Hu, 2023; Paredes Amorin 等, 2025]，针对中文金融社交媒体短文本的系统比较较少。
+（1）**以英文数据为主。** 大模型金融情感分析的研究多基于 Financial PhraseBank[16]、FiQA 等英文数据集[17-19]，针对中文金融社交媒体短文本的系统比较较少。
 
 （2）**缺少统计检验。** 多数研究只报告单次运行的准确率或 F1 值，在模型差距只有一两个百分点时，很难判断差异来自方法本身还是来自随机性。
 
-（3）**忽视置信度的可靠性。** 实际应用中，模型不仅要给出类别，还要给出可信的置信度，以便把没把握的样本交给人工处理。已有研究指出神经网络和 LoRA 微调的大模型存在过度自信问题 [Guo 等, 2017; Balabanov 和 Linander, 2024]，但在中文金融情感任务上尚缺少系统评估。
+（3）**忽视置信度的可靠性。** 实际应用中，模型不仅要给出类别，还要给出可信的置信度，以便把没把握的样本交给人工处理。已有研究指出神经网络和 LoRA 微调的大模型存在过度自信问题[20,21]，但在中文金融情感任务上尚缺少系统评估。
 
 （4）**较少检查基准数据本身的质量。** 公开基准通常被直接使用，其中可能存在的重复样本、训练集与测试集重叠以及标注不一致等问题，会影响评估结论，但很少被专门分析。
 
@@ -56,7 +56,7 @@ These results suggest that evaluations of LLMs should jointly consider data qual
 
 ## 1.3 研究内容
 
-本文以 BBT-CFLEB 基准中的 FinFE 数据集 [Lu 等, 2023] 为研究对象，围绕以下几个问题展开：
+本文以 BBT-CFLEB 基准中的 FinFE 数据集[22] 为研究对象，围绕以下几个问题展开：
 
 （1）**数据质量检查与重新划分。** 对公开数据进行探索性分析，识别重复文本、标签冲突以及训练集与评估集之间的重叠，制定清洗规则，构建无泄漏的训练集、验证集和测试集（8802 / 979 / 1713 条）。
 
@@ -102,9 +102,9 @@ These results suggest that evaluations of LLMs should jointly consider data qual
 
 ## 2.1 金融情感分析概述
 
-文本情感分析（sentiment analysis）是指从文本中识别作者所表达的主观态度，通常分为积极、消极、中性等类别。金融情感分析是其在金融领域的应用，研究对象包括财经新闻、上市公司公告、研究报告和投资者在社交媒体上发布的评论等。已有研究表明，从这些文本中提取的情绪信息与股票收益、成交量和市场波动存在关联 [Tetlock, 2007; 游家兴和吴静, 2012; 部慧等, 2018]，因此金融情感分析是连接文本数据与金融市场研究的重要环节 [沈艳等, 2019]。
+文本情感分析（sentiment analysis）是指从文本中识别作者所表达的主观态度，通常分为积极、消极、中性等类别。金融情感分析是其在金融领域的应用，研究对象包括财经新闻、上市公司公告、研究报告和投资者在社交媒体上发布的评论等。已有研究表明，从这些文本中提取的情绪信息与股票收益、成交量和市场波动存在关联[1,2,4]，因此金融情感分析是连接文本数据与金融市场研究的重要环节[5]。
 
-与一般领域相比，金融情感分析有以下特点：一是存在大量领域术语，通用情感词在金融语境中可能含义不同，例如“负债”在一般语境中带有消极色彩，在财务报表中却只是中性的会计科目 [Loughran 和 McDonald, 2011]；二是社交媒体评论篇幅短、口语化，常含股票代码、网络用语和反讽；三是中性与弱积极、弱消极之间的边界模糊，即使人工标注也容易产生分歧 [Malo 等, 2014]。
+与一般领域相比，金融情感分析有以下特点：一是存在大量领域术语，通用情感词在金融语境中可能含义不同，例如“负债”在一般语境中带有消极色彩，在财务报表中却只是中性的会计科目[6]；二是社交媒体评论篇幅短、口语化，常含股票代码、网络用语和反讽；三是中性与弱积极、弱消极之间的边界模糊，即使人工标注也容易产生分歧[16]。
 
 从方法上看，金融情感分析大致经历了情感词典、传统机器学习、预训练语言模型和大语言模型四个阶段。本文选取后三个阶段的代表方法进行比较，下面分别介绍。
 
@@ -140,7 +140,7 @@ These results suggest that evaluations of LLMs should jointly consider data qual
 
 ### 2.3.1 Transformer 与自注意力机制
 
-Transformer [Vaswani 等, 2017] 是目前主流语言模型的基础结构，其核心是自注意力（self-attention）机制。对于输入序列，每个位置的向量通过三个线性变换分别得到查询 Q、键 K 和值 V，注意力输出为：
+Transformer[23] 是目前主流语言模型的基础结构，其核心是自注意力（self-attention）机制。对于输入序列，每个位置的向量通过三个线性变换分别得到查询 Q、键 K 和值 V，注意力输出为：
 
 　　Attention(Q, K, V) = softmax( QKᵀ / √d_k ) V　　（2-4）
 
@@ -148,19 +148,19 @@ Transformer [Vaswani 等, 2017] 是目前主流语言模型的基础结构，其
 
 ### 2.3.2 BERT 与 RoBERTa-wwm-ext
 
-BERT [Devlin 等, 2019] 由多层 Transformer 编码器组成，采用“预训练 + 微调”的两阶段范式。在预训练阶段，模型在大规模无标注语料上完成掩码语言模型任务，即随机遮住部分字词，让模型根据上下文进行预测，从而学到通用的语言知识。在微调阶段，在输入序列开头的 [CLS] 位置输出上接一个分类层，用少量有标注数据对整个模型进行训练，即可完成情感分类等下游任务。
+BERT[7] 由多层 Transformer 编码器组成，采用“预训练 + 微调”的两阶段范式。在预训练阶段，模型在大规模无标注语料上完成掩码语言模型任务，即随机遮住部分字词，让模型根据上下文进行预测，从而学到通用的语言知识。在微调阶段，在输入序列开头的 [CLS] 位置输出上接一个分类层，用少量有标注数据对整个模型进行训练，即可完成情感分类等下游任务。
 
-在中文场景中，Cui 等（2021）提出了全词掩码（whole word masking）策略：遮盖时以词为单位，而不是只遮盖单个汉字，使模型更好地学习词级语义。RoBERTa-wwm-ext 在此基础上采用了 RoBERTa 的训练方式，并使用了更大规模的中文语料，是中文文本分类中常用的强基线。在金融领域，FinBERT [Araci, 2019] 等模型通过在金融语料上继续预训练进一步提升了效果。
+在中文场景中，Cui 等[9]提出了全词掩码（whole word masking）策略：遮盖时以词为单位，而不是只遮盖单个汉字，使模型更好地学习词级语义。RoBERTa-wwm-ext 在此基础上采用了 RoBERTa 的训练方式，并使用了更大规模的中文语料，是中文文本分类中常用的强基线。在金融领域，FinBERT[8] 等模型通过在金融语料上继续预训练进一步提升了效果。
 
 ## 2.4 大语言模型与参数高效微调
 
 ### 2.4.1 大语言模型
 
-大语言模型（large language model, LLM）通常指参数量在数十亿以上、基于 Transformer 解码器的生成式模型。它们通过“根据前文预测下一个词”的方式在海量文本上进行预训练，研究发现模型性能随参数量、数据量和计算量的增加而按幂律规律提升 [Kaplan 等, 2020]。经过指令微调后，大模型可以按照自然语言指令完成各种任务。本文使用的 Qwen3-8B [Yang 等, 2025]、Qwen2.5-7B-Instruct 和 GLM-4-9B-Chat 都是参数量在 70 亿到 90 亿之间、中文能力较强的开源模型。在金融领域，也出现了 BloombergGPT [Wu 等, 2023]、FinGPT [Yang 等, 2023] 等专门的大模型。
+大语言模型（large language model, LLM）通常指参数量在数十亿以上、基于 Transformer 解码器的生成式模型。它们通过“根据前文预测下一个词”的方式在海量文本上进行预训练，研究发现模型性能随参数量、数据量和计算量的增加而按幂律规律提升[24]。经过指令微调后，大模型可以按照自然语言指令完成各种任务。本文使用的 Qwen3-8B[11]、Qwen2.5-7B-Instruct 和 GLM-4-9B-Chat 都是参数量在 70 亿到 90 亿之间、中文能力较强的开源模型。在金融领域，也出现了 BloombergGPT[12]、FinGPT[13] 等专门的大模型。
 
 ### 2.4.2 零样本与少样本提示
 
-大模型可以不经训练、直接通过提示词（prompt）完成分类任务。零样本（zero-shot）提示只给出任务说明和待分类文本，例如“判断下面这条股民评论的情感倾向，只回答消极、中性或积极”；少样本（few-shot）提示则在任务说明后附上若干带标签的示例，让模型通过上下文学习（in-context learning）模仿示例作答 [Brown 等, 2020]。提示方法不需要训练，但效果依赖提示词的设计，且通常不如有监督微调。
+大模型可以不经训练、直接通过提示词（prompt）完成分类任务。零样本（zero-shot）提示只给出任务说明和待分类文本，例如“判断下面这条股民评论的情感倾向，只回答消极、中性或积极”；少样本（few-shot）提示则在任务说明后附上若干带标签的示例，让模型通过上下文学习（in-context learning）模仿示例作答[10]。提示方法不需要训练，但效果依赖提示词的设计，且通常不如有监督微调。
 
 ### 2.4.3 基于标签词的概率提取
 
@@ -172,7 +172,7 @@ BERT [Devlin 等, 2019] 由多层 Transformer 编码器组成，采用“预训�
 
 ### 2.4.4 LoRA 低秩适配
 
-全参数微调需要更新模型的全部参数。以 80 亿参数的模型为例，仅参数、梯度和优化器状态就需要上百 GB 显存，远超单张消费级显卡的容量。参数高效微调方法只训练少量新增参数，其中 LoRA（low-rank adaptation）[Hu 等, 2022] 是最常用的一种。
+全参数微调需要更新模型的全部参数。以 80 亿参数的模型为例，仅参数、梯度和优化器状态就需要上百 GB 显存，远超单张消费级显卡的容量。参数高效微调方法只训练少量新增参数，其中 LoRA（low-rank adaptation）[14] 是最常用的一种。
 
 LoRA 的基本假设是：模型在适应新任务时，权重的变化量是“低秩”的，即可以用两个小矩阵的乘积近似。对于预训练权重 W₀ ∈ ℝ^(d×k)，LoRA 冻结 W₀，只训练两个低秩矩阵 B ∈ ℝ^(d×r) 和 A ∈ ℝ^(r×k)：
 
@@ -182,7 +182,7 @@ LoRA 的基本假设是：模型在适应新任务时，权重的变化量是“
 
 ### 2.4.5 QLoRA 量化微调
 
-QLoRA [Dettmers 等, 2023] 在 LoRA 的基础上进一步把冻结的预训练权重量化为 4 比特存储，计算时再临时反量化为 16 位精度，LoRA 参数仍以 16 位精度训练。由于冻结权重占显存的绝大部分，这种做法可以把 8B 模型微调的显存需求降低一半以上，而效果与 16 位 LoRA 基本相当。本文在消融实验中比较了两种方式的效果与显存占用。
+QLoRA[15] 在 LoRA 的基础上进一步把冻结的预训练权重量化为 4 比特存储，计算时再临时反量化为 16 位精度，LoRA 参数仍以 16 位精度训练。由于冻结权重占显存的绝大部分，这种做法可以把 8B 模型微调的显存需求降低一半以上，而效果与 16 位 LoRA 基本相当。本文在消融实验中比较了两种方式的效果与显存占用。
 
 ## 2.5 分类评价指标
 
@@ -198,7 +198,7 @@ QLoRA [Dettmers 等, 2023] 在 LoRA 的基础上进一步把冻结的预训练�
 
 ## 2.6 模型比较的统计检验
 
-模型分数之间的差异可能来自两种随机性：一是**训练随机性**，即同一模型换一个随机种子重新训练，分数也会波动；二是**测试样本抽样误差**，即测试集只是所有可能样本中的一个有限样本，换一批测试样本，分数也会不同 [Dietterich, 1998]。本文针对这两种来源分别使用不同的检验方法。
+模型分数之间的差异可能来自两种随机性：一是**训练随机性**，即同一模型换一个随机种子重新训练，分数也会波动；二是**测试样本抽样误差**，即测试集只是所有可能样本中的一个有限样本，换一批测试样本，分数也会不同[25]。本文针对这两种来源分别使用不同的检验方法。
 
 ### 2.6.1 方差分析与多重比较
 
@@ -210,19 +210,19 @@ QLoRA [Dettmers 等, 2023] 在 LoRA 的基础上进一步把冻结的预训练�
 
 ### 2.6.2 McNemar 检验
 
-针对测试样本抽样误差，McNemar 检验 [McNemar, 1947] 用于比较两个模型在同一测试集上的准确率。设 b 为模型甲正确而模型乙错误的样本数，c 为模型甲错误而模型乙正确的样本数，在“两模型准确率相同”的原假设下，b 应服从参数为 (b + c, 0.5) 的二项分布；样本较多时，也可用统计量：
+针对测试样本抽样误差，McNemar 检验[26] 用于比较两个模型在同一测试集上的准确率。设 b 为模型甲正确而模型乙错误的样本数，c 为模型甲错误而模型乙正确的样本数，在“两模型准确率相同”的原假设下，b 应服从参数为 (b + c, 0.5) 的二项分布；样本较多时，也可用统计量：
 
 　　χ² = (|b − c| − 1)² / (b + c)　　（2-10）
 
-近似服从自由度为 1 的卡方分布。该检验只利用两个模型预测不一致的样本，考虑了两模型在同一批样本上的配对关系，是比较分类器的常用方法 [Dietterich, 1998]。
+近似服从自由度为 1 的卡方分布。该检验只利用两个模型预测不一致的样本，考虑了两模型在同一批样本上的配对关系，是比较分类器的常用方法[25]。
 
 ### 2.6.3 配对 Bootstrap 置信区间
 
-宏平均 F1 不是简单的比例，难以写出其差值的解析分布。Bootstrap 方法 [Efron 和 Tibshirani, 1993] 通过重抽样来近似统计量的抽样分布：从 n 个测试样本中有放回地抽取 n 个，组成一个新的测试集，在其上计算两个模型的 F1 差值；重复 B 次（本文取 B = 2000），取所有差值的 2.5% 和 97.5% 分位数作为 95% 置信区间。“配对”指两个模型每次都在同一批重抽样样本上计算，从而保留了两者之间的相关性。若置信区间不包含 0，则认为差异显著。
+宏平均 F1 不是简单的比例，难以写出其差值的解析分布。Bootstrap 方法[27] 通过重抽样来近似统计量的抽样分布：从 n 个测试样本中有放回地抽取 n 个，组成一个新的测试集，在其上计算两个模型的 F1 差值；重复 B 次（本文取 B = 2000），取所有差值的 2.5% 和 97.5% 分位数作为 95% 置信区间。“配对”指两个模型每次都在同一批重抽样样本上计算，从而保留了两者之间的相关性。若置信区间不包含 0，则认为差异显著。
 
 ### 2.6.4 Holm 多重比较校正
 
-同时进行 m 次检验时，即使每次检验的显著性水平都是 0.05，至少出现一次误判的概率也会明显增大。Holm 方法 [Holm, 1979] 将 m 个 p 值从小到大排序为 p₍₁₎ ≤ … ≤ p₍ₘ₎，依次将 p₍ᵢ₎ 与 α/(m − i + 1) 比较，一旦某个 p 值不满足条件，就停止并接受其后所有原假设。等价地，校正后的 p 值为：
+同时进行 m 次检验时，即使每次检验的显著性水平都是 0.05，至少出现一次误判的概率也会明显增大。Holm 方法[28] 将 m 个 p 值从小到大排序为 p₍₁₎ ≤ … ≤ p₍ₘ₎，依次将 p₍ᵢ₎ 与 α/(m − i + 1) 比较，一旦某个 p 值不满足条件，就停止并接受其后所有原假设。等价地，校正后的 p 值为：
 
 　　p̃₍ᵢ₎ = max_{j ≤ i} min{ 1, (m − j + 1) p₍ⱼ₎ }　　（2-11）
 
@@ -232,7 +232,7 @@ Holm 方法在控制总体第一类错误率的同时，比 Bonferroni 校正更
 
 ### 2.7.1 校准的含义与度量
 
-如果一个模型对一批样本给出的置信度都是 80%，那么这批样本中应当恰好约 80% 被预测正确，这样的模型称为“校准良好”的模型。研究发现，现代深度神经网络往往过度自信，即置信度系统性地高于实际准确率 [Guo 等, 2017]；LoRA 微调的大模型也存在类似问题 [Balabanov 和 Linander, 2024]。
+如果一个模型对一批样本给出的置信度都是 80%，那么这批样本中应当恰好约 80% 被预测正确，这样的模型称为“校准良好”的模型。研究发现，现代深度神经网络往往过度自信，即置信度系统性地高于实际准确率[20]；LoRA 微调的大模型也存在类似问题[21]。
 
 期望校准误差（expected calibration error, ECE）是最常用的校准度量。将样本按置信度划分为 M 个区间（本文取 M = 15），第 m 个区间的样本集合为 B_m，则：
 
@@ -242,7 +242,7 @@ Holm 方法在控制总体第一类错误率的同时，比 Bonferroni 校正更
 
 ### 2.7.2 温度缩放
 
-温度缩放（temperature scaling）[Guo 等, 2017] 是一种简单有效的校准方法：用一个标量 T > 0 除以模型输出的 logit，再做 softmax：
+温度缩放（temperature scaling）[20] 是一种简单有效的校准方法：用一个标量 T > 0 除以模型输出的 logit，再做 softmax：
 
 　　p_k = exp(z_k / T) / Σ_j exp(z_j / T)　　（2-13）
 
@@ -250,7 +250,7 @@ T > 1 会使概率分布更“平”，降低过高的置信度；T < 1 则相�
 
 ## 2.8 选择性预测
 
-在实际应用中，模型可以对没把握的样本“拒绝回答”，交给人工处理，这称为选择性预测（selective prediction）[Chow, 1970; Geifman 和 El-Yaniv, 2017]。具体做法是设定置信度阈值 τ，只对置信度不低于 τ 的样本给出预测。被模型回答的样本占全部样本的比例称为**覆盖率**，在这些样本上的错误率称为**风险**。
+在实际应用中，模型可以对没把握的样本“拒绝回答”，交给人工处理，这称为选择性预测（selective prediction）[29,30]。具体做法是设定置信度阈值 τ，只对置信度不低于 τ 的样本给出预测。被模型回答的样本占全部样本的比例称为**覆盖率**，在这些样本上的错误率称为**风险**。
 
 阈值越高，覆盖率越低，但被回答样本的准确率通常越高。将阈值从高到低变化，可以得到风险—覆盖率曲线，曲线下面积 AURC（area under the risk-coverage curve）综合反映了模型的置信度排序能力：AURC 越小，说明模型越能把错误样本排在低置信度的位置。与 ECE 关注“置信度的数值是否准确”不同，AURC 关注“置信度的高低顺序是否合理”。
 
@@ -276,7 +276,7 @@ q 可理解为单次标注的准确率。由于测试集标签本身也以 q 的
 
 ## 3.1 数据来源
 
-本文使用的数据集为 FinFE（Financial Forum Emotion），它是中文金融评测基准 BBT-CFLEB 中的情感分类子任务 [Lu 等, 2023]。FinFE 的文本来自金融社交媒体上的股民评论，每条评论被标注为消极、中性、积极三类情感之一。与新闻标题、研报等规范文本相比，股民评论篇幅短、口语化程度高，常夹杂股票代码、网络用语和反讽表达，对模型的语义理解能力要求较高。
+本文使用的数据集为 FinFE（Financial Forum Emotion），它是中文金融评测基准 BBT-CFLEB 中的情感分类子任务[22]。FinFE 的文本来自金融社交媒体上的股民评论，每条评论被标注为消极、中性、积极三类情感之一。与新闻标题、研报等规范文本相比，股民评论篇幅短、口语化程度高，常夹杂股票代码、网络用语和反讽表达，对模型的语义理解能力要求较高。
 
 原论文描述的数据划分为训练集 8000 条、验证集 1000 条、测试集 1000 条，但项目公开仓库中实际提供的文件与之不同：train_list.json 含 16157 条带标签样本，eval_list.json 含 2020 条带标签样本，problem_list.json 含 2020 条无标签样本（排行榜测试集，标签未公开）。由于无标签样本无法用于评估，本文仅使用前两个文件，并以公开文件的实际内容为准重新构建数据集。
 
@@ -369,8 +369,8 @@ FinFE 文本整体很短，各类别的长度统计见表 3-3。积极类评论�
 | 类别 | 模型 | 参数量 | 使用方式 |
 | --- | --- | --- | --- |
 | 传统机器学习 | TF-IDF + 逻辑回归 / 线性 SVM | — | 有监督训练 |
-| 预训练语言模型 | BERT-base-Chinese [Devlin 等, 2019] | 1.0 亿 | 全参数微调 |
-| 预训练语言模型 | Chinese-RoBERTa-wwm-ext [Cui 等, 2021] | 1.0 亿 | 全参数微调 |
+| 预训练语言模型 | BERT-base-Chinese[7] | 1.0 亿 | 全参数微调 |
+| 预训练语言模型 | Chinese-RoBERTa-wwm-ext[9] | 1.0 亿 | 全参数微调 |
 | 大语言模型 | Qwen3-8B、Qwen2.5-7B-Instruct、GLM-4-9B-Chat | 70 亿～94 亿 | 零样本、少样本提示；LoRA 微调 |
 
 传统基线采用字符级 1～3 元组的 TF-IDF 特征，分类器的正则化系数 C 在验证集上从 {0.1, 0.3, 1, 3, 10, 30, 100} 中选择。线性 SVM 本身不输出概率，本文用 sigmoid 校准（5 折交叉验证）得到三类概率，以便与其他模型统一做校准分析。
@@ -402,7 +402,7 @@ P(y = c | x) = exp(z_c) / Σ_j exp(z_j)，  c, j ∈ {消极, 中性, 积极}
 
 ### 3.5.3 LoRA 微调
 
-LoRA（Low-Rank Adaptation）[Hu 等, 2022] 冻结预训练模型的全部原始权重，只在指定的权重矩阵 W 旁并联一个低秩分解 ΔW = BA，其中 B 为 d × r 矩阵，A 为 r × k 矩阵，秩 r 远小于 d 和 k。前向计算变为：
+LoRA（Low-Rank Adaptation）[14] 冻结预训练模型的全部原始权重，只在指定的权重矩阵 W 旁并联一个低秩分解 ΔW = BA，其中 B 为 d × r 矩阵，A 为 r × k 矩阵，秩 r 远小于 d 和 k。前向计算变为：
 
 ```
 h = W x + (α / r) · B A x
@@ -412,7 +412,7 @@ h = W x + (α / r) · B A x
 
 训练目标与 3.5.2 节的推理方式保持一致：损失函数为答案位置上正确标签词的交叉熵，等价于只在答案词上计算损失的监督微调。优化器为 AdamW，学习率 1×10⁻⁴，有效批大小 16，训练 2 轮，前 5% 步数线性预热后线性衰减，梯度裁剪阈值 1.0，采用 bf16 混合精度和梯度检查点以节省显存。每轮结束后在验证集上计算 Macro-F1，保留最优一轮的 LoRA 权重用于测试。
 
-为考察量化对效果的影响，本文还实现了 QLoRA [Dettmers 等, 2023]：以 4-bit NF4 格式加载冻结的基础模型权重（采用双重量化），LoRA 模块和计算过程仍使用 bf16 精度。
+为考察量化对效果的影响，本文还实现了 QLoRA[15]：以 4-bit NF4 格式加载冻结的基础模型权重（采用双重量化），LoRA 模块和计算过程仍使用 bf16 精度。
 
 ## 3.6 实验环境与重复设计
 
@@ -440,11 +440,11 @@ Macro-F1 = (F1_消极 + F1_中性 + F1_积极) / 3
 χ² = (|n₀₁ − n₁₀| − 1)² / (n₀₁ + n₁₀)
 ```
 
-它近似服从自由度为 1 的卡方分布；当 n₀₁ + n₁₀ < 25 时改用精确二项检验 [McNemar, 1947]。
+它近似服从自由度为 1 的卡方分布；当 n₀₁ + n₁₀ < 25 时改用精确二项检验[26]。
 
-**Holm 多重比较校正。** 对 m 个模型两两比较时共进行 m(m−1)/2 次检验，若不校正，犯第一类错误的总概率会随检验次数上升。Holm 方法 [Holm, 1979] 将 p 值从小到大排序为 p₍₁₎ ≤ … ≤ p₍ₖ₎，依次与 α/k、α/(k−1)、…、α 比较，第一次不拒绝即停止。它控制了族错误率，同时比 Bonferroni 校正更有检验功效。
+**Holm 多重比较校正。** 对 m 个模型两两比较时共进行 m(m−1)/2 次检验，若不校正，犯第一类错误的总概率会随检验次数上升。Holm 方法[28] 将 p 值从小到大排序为 p₍₁₎ ≤ … ≤ p₍ₖ₎，依次与 α/k、α/(k−1)、…、α 比较，第一次不拒绝即停止。它控制了族错误率，同时比 Bonferroni 校正更有检验功效。
 
-**配对 Bootstrap。** McNemar 检验针对的是准确率，而本文的主要指标是 Macro-F1，后者不是逐样本可加的统计量。为此，本文对测试集做有放回重抽样（B = 2000 次），每次在同一组抽样样本上计算两个模型的 Macro-F1 差值，以差值分布的 2.5% 和 97.5% 分位数构成 95% 置信区间 [Efron 和 Tibshirani, 1993]。若区间不包含 0，则认为两模型在 Macro-F1 上存在显著差异。
+**配对 Bootstrap。** McNemar 检验针对的是准确率，而本文的主要指标是 Macro-F1，后者不是逐样本可加的统计量。为此，本文对测试集做有放回重抽样（B = 2000 次），每次在同一组抽样样本上计算两个模型的 Macro-F1 差值，以差值分布的 2.5% 和 97.5% 分位数构成 95% 置信区间[27]。若区间不包含 0，则认为两模型在 Macro-F1 上存在显著差异。
 
 **方差分析。** 对使用 3 个随机种子的模型，以各次运行的 Macro-F1 为观测值做单因素方差分析，检验不同模型的平均 Macro-F1 是否相同。先用 Levene 检验判断方差齐性，同时报告不要求方差齐性的 Welch 方差分析作为稳健性检验；若整体显著，再用 Tukey HSD 方法做两两事后比较。
 
@@ -458,13 +458,13 @@ Macro-F1 = (F1_消极 + F1_中性 + F1_积极) / 3
 ECE = Σ_m (|B_m| / n) · |acc(B_m) − conf(B_m)|
 ```
 
-其中 acc(B_m) 和 conf(B_m) 分别为区间内样本的准确率和平均置信度 [Guo 等, 2017]。此外报告最大校准误差 MCE（各区间差距的最大值）、Brier 分数（预测概率向量与真实标签独热向量的平方误差）和负对数似然 NLL，并绘制可靠性图。
+其中 acc(B_m) 和 conf(B_m) 分别为区间内样本的准确率和平均置信度[20]。此外报告最大校准误差 MCE（各区间差距的最大值）、Brier 分数（预测概率向量与真实标签独热向量的平方误差）和负对数似然 NLL，并绘制可靠性图。
 
-温度缩放 [Guo 等, 2017] 是一种事后校准方法：将 logit 除以一个标量温度 T 后再做 softmax，T > 1 时概率分布变得更平缓，可以缓解过度自信。T 通过最小化 NLL 估计。由于大模型实验只保存了测试集的预测概率，本文在测试集上采用 5 折交叉拟合：在 4 折上估计 T，应用于剩下的 1 折，保证每个样本的校准概率都来自未见过它的温度估计。
+温度缩放[20] 是一种事后校准方法：将 logit 除以一个标量温度 T 后再做 softmax，T > 1 时概率分布变得更平缓，可以缓解过度自信。T 通过最小化 NLL 估计。由于大模型实验只保存了测试集的预测概率，本文在测试集上采用 5 折交叉拟合：在 4 折上估计 T，应用于剩下的 1 折，保证每个样本的校准概率都来自未见过它的温度估计。
 
 ### 3.7.4 选择性预测
 
-在实际应用中，模型可以只对有把握的样本给出判断，对没把握的样本交由人工处理。将测试样本按置信度从高到低排序，只保留前 c 比例的样本作答（c 称为覆盖率），计算这部分样本的错误率（风险），得到风险-覆盖率曲线。曲线下面积 AURC 越小，说明模型的置信度越能区分对错 [Geifman 和 El-Yaniv, 2017]。由于 AURC 也受模型整体错误率影响，本文同时报告 E-AURC，即 AURC 减去在同样错误率下按理想排序可达到的最小 AURC，它只衡量置信度排序的质量。
+在实际应用中，模型可以只对有把握的样本给出判断，对没把握的样本交由人工处理。将测试样本按置信度从高到低排序，只保留前 c 比例的样本作答（c 称为覆盖率），计算这部分样本的错误率（风险），得到风险-覆盖率曲线。曲线下面积 AURC 越小，说明模型的置信度越能区分对错[30]。由于 AURC 也受模型整体错误率影响，本文同时报告 E-AURC，即 AURC 减去在同样错误率下按理想排序可达到的最小 AURC，它只衡量置信度排序的质量。
 
 # 第4章 实验结果与分析
 
@@ -496,7 +496,7 @@ ECE = Σ_m (|B_m| / n) · |acc(B_m) − conf(B_m)|
 
 第一，LoRA 微调后的三个大模型取得了最好的效果，Macro-F1 在 0.798～0.807 之间，准确率在 81.8%～82.6% 之间。其中 Qwen2.5-7B 的平均 Macro-F1 最高（0.807），但三个大模型之间的差距不超过 0.01。
 
-第二，不经微调的大模型表现较差。三个模型零样本的 Macro-F1 只有 0.644～0.666，甚至低于最简单的 TF-IDF + 逻辑回归（0.702）。这与 DISC-FinLLM [Chen 等, 2023] 等研究报告的通用大模型在 FinFE 上准确率约为 60%～69% 的结论一致，说明通用大模型虽然具备一般的语言理解能力，但并不熟悉股民评论的表达习惯和标注标准。
+第二，不经微调的大模型表现较差。三个模型零样本的 Macro-F1 只有 0.644～0.666，甚至低于最简单的 TF-IDF + 逻辑回归（0.702）。这与 DISC-FinLLM[31] 等研究报告的通用大模型在 FinFE 上准确率约为 60%～69% 的结论一致，说明通用大模型虽然具备一般的语言理解能力，但并不熟悉股民评论的表达习惯和标注标准。
 
 第三，提供示例的作用有限且不稳定。每类给出 3 个示例时，Qwen3-8B 的 Macro-F1 从 0.644 提高到 0.696，Qwen2.5-7B 从 0.666 提高到 0.690，而 GLM-4-9B 反而从 0.661 下降到 0.627。每类只给 1 个示例时，GLM-4-9B 同样下降（0.630），Qwen2.5-7B 基本不变（0.666）。可见少样本提示的效果因模型而异，远不如微调可靠。
 
@@ -712,29 +712,6 @@ FinFE 中有 5575 条文本被标注了两次及以上，共形成 6048 对“�
 7. 数据泄露会让模型“背答案”，使 TF-IDF 的分数虚高 8.1 个百分点，并把 TF-IDF 与 RoBERTa 的真实差距缩小约三分之二；清洗数据没有明显损害模型的泛化能力。
 8. 重复标注的一致率仅为 82.9%（κ = 0.735），据此估计该数据集的准确率上限约为 91%；LoRA 大模型与标签的一致率已接近人工标注之间的一致率。
 
-## 参考文献（本章引用）
-
-[Chen 等, 2023] Chen W, Wang Q, Long Z, et al. DISC-FinLLM: A Chinese financial large language model based on multiple experts fine-tuning[J]. arXiv preprint arXiv:2310.15205, 2023.
-
-[Cui 等, 2021] Cui Y, Che W, Liu T, et al. Pre-training with whole word masking for Chinese BERT[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2021, 29: 3504-3514.
-
-[Dettmers 等, 2023] Dettmers T, Pagnoni A, Holtzman A, et al. QLoRA: Efficient finetuning of quantized LLMs[C]. Advances in Neural Information Processing Systems, 2023.
-
-[Devlin 等, 2019] Devlin J, Chang M W, Lee K, et al. BERT: Pre-training of deep bidirectional transformers for language understanding[C]. Proceedings of NAACL-HLT, 2019: 4171-4186.
-
-[Efron 和 Tibshirani, 1993] Efron B, Tibshirani R J. An Introduction to the Bootstrap[M]. New York: Chapman & Hall, 1993.
-
-[Geifman 和 El-Yaniv, 2017] Geifman Y, El-Yaniv R. Selective classification for deep neural networks[C]. Advances in Neural Information Processing Systems, 2017.
-
-[Guo 等, 2017] Guo C, Pleiss G, Sun Y, et al. On calibration of modern neural networks[C]. Proceedings of the 34th International Conference on Machine Learning, 2017: 1321-1330.
-
-[Holm, 1979] Holm S. A simple sequentially rejective multiple test procedure[J]. Scandinavian Journal of Statistics, 1979, 6(2): 65-70.
-
-[Hu 等, 2022] Hu E J, Shen Y, Wallis P, et al. LoRA: Low-rank adaptation of large language models[C]. International Conference on Learning Representations, 2022.
-
-[Lu 等, 2023] Lu D, Wu H, Liang J, et al. BBT-Fin: Comprehensive construction of Chinese financial domain pre-trained language model, corpus and benchmark[J]. arXiv preprint arXiv:2302.09432, 2023.
-
-[McNemar, 1947] McNemar Q. Note on the sampling error of the difference between correlated proportions or percentages[J]. Psychometrika, 1947, 12(2): 153-157.
 
 # 第5章 结论与展望
 
@@ -786,8 +763,7 @@ FinFE 中有 5575 条文本被标注了两次及以上，共形成 6048 对“�
 
 # 参考文献
 
-
-[1] 沈艳, 陈赟, 黄卓. 文本大数据分析在经济学和金融学中的应用：一个文献综述[J]. 经济学(季刊), 2019, 18(4): 1153-1186.
+[1] Tetlock P C. Giving content to investor sentiment: The role of media in the stock market[J]. The Journal of Finance, 2007, 62(3): 1139-1168.
 
 [2] 游家兴, 吴静. 沉默的螺旋：媒体情绪与资产误定价[J]. 经济研究, 2012, 47(7): 141-152.
 
@@ -795,66 +771,56 @@ FinFE 中有 5575 条文本被标注了两次及以上，共形成 6048 对“�
 
 [4] 部慧, 解峥, 李佳鸿, 吴俊杰. 基于股评的投资者情绪对股票市场的影响[J]. 管理科学学报, 2018, 21(4): 86-101.
 
-[5] 石善冲, 朱颖楠, 赵志刚, 康凯立, 熊熊. 基于微信文本挖掘的投资者情绪与股票市场表现[J]. 系统工程理论与实践, 2018, 38(6): 1404-1412.
+[5] 沈艳, 陈赟, 黄卓. 文本大数据分析在经济学和金融学中的应用：一个文献综述[J]. 经济学(季刊), 2019, 18(4): 1153-1186.
 
-[6] Tetlock P C. Giving content to investor sentiment: The role of media in the stock market[J]. The Journal of Finance, 2007, 62(3): 1139-1168.
+[6] Loughran T, McDonald B. When is a liability not a liability? Textual analysis, dictionaries, and 10-Ks[J]. The Journal of Finance, 2011, 66(1): 35-65.
 
-[7] Loughran T, McDonald B. When is a liability not a liability? Textual analysis, dictionaries, and 10-Ks[J]. The Journal of Finance, 2011, 66(1): 35-65.
+[7] Devlin J, Chang M W, Lee K, et al. BERT: Pre-training of deep bidirectional transformers for language understanding[C]//Proceedings of NAACL-HLT. 2019: 4171-4186.
 
-[8] Malo P, Sinha A, Korhonen P, et al. Good debt or bad debt: Detecting semantic orientations in economic texts[J]. Journal of the Association for Information Science and Technology, 2014, 65(4): 782-796.
+[8] Araci D. FinBERT: Financial sentiment analysis with pre-trained language models[J]. arXiv preprint arXiv:1908.10063, 2019.
 
-[9] Vaswani A, Shazeer N, Parmar N, et al. Attention is all you need[C]//Advances in Neural Information Processing Systems. 2017: 5998-6008.
+[9] Cui Y, Che W, Liu T, et al. Pre-training with whole word masking for Chinese BERT[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2021, 29: 3504-3514.
 
-[10] Devlin J, Chang M W, Lee K, et al. BERT: Pre-training of deep bidirectional transformers for language understanding[C]//Proceedings of NAACL-HLT. 2019: 4171-4186.
+[10] Brown T, Mann B, Ryder N, et al. Language models are few-shot learners[C]//Advances in Neural Information Processing Systems. 2020: 1877-1901.
 
-[11] Araci D. FinBERT: Financial sentiment analysis with pre-trained language models[J]. arXiv preprint arXiv:1908.10063, 2019.
+[11] Yang A, Li A, Yang B, et al. Qwen3 technical report[J]. arXiv preprint arXiv:2505.09388, 2025.
 
-[12] Cui Y, Che W, Liu T, et al. Pre-training with whole word masking for Chinese BERT[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2021, 29: 3504-3514.
+[12] Wu S, Irsoy O, Lu S, et al. BloombergGPT: A large language model for finance[J]. arXiv preprint arXiv:2303.17564, 2023.
 
-[13] Brown T, Mann B, Ryder N, et al. Language models are few-shot learners[C]//Advances in Neural Information Processing Systems. 2020: 1877-1901.
+[13] Yang H, Liu X Y, Wang C D. FinGPT: Open-source financial large language models[J]. arXiv preprint arXiv:2306.06031, 2023.
 
-[14] Kaplan J, McCandlish S, Henighan T, et al. Scaling laws for neural language models[J]. arXiv preprint arXiv:2001.08361, 2020.
+[14] Hu E J, Shen Y, Wallis P, et al. LoRA: Low-rank adaptation of large language models[C]//International Conference on Learning Representations. 2022.
 
-[15] Yang A, Li A, Yang B, et al. Qwen3 technical report[J]. arXiv preprint arXiv:2505.09388, 2025.
+[15] Dettmers T, Pagnoni A, Holtzman A, et al. QLoRA: Efficient finetuning of quantized LLMs[C]//Advances in Neural Information Processing Systems. 2023.
 
-[16] Wu S, Irsoy O, Lu S, et al. BloombergGPT: A large language model for finance[J]. arXiv preprint arXiv:2303.17564, 2023.
+[16] Malo P, Sinha A, Korhonen P, et al. Good debt or bad debt: Detecting semantic orientations in economic texts[J]. Journal of the Association for Information Science and Technology, 2014, 65(4): 782-796.
 
-[17] Yang H, Liu X Y, Wang C D. FinGPT: Open-source financial large language models[J]. arXiv preprint arXiv:2306.06031, 2023.
+[17] Zhang B, Yang H, Liu X Y. Instruct-FinGPT: Financial sentiment analysis by instruction tuning of general-purpose large language models[J]. arXiv preprint arXiv:2306.12659, 2023.
 
-[18] Lu D, Wu H, Liang J, et al. BBT-Fin: Comprehensive construction of Chinese financial domain pre-trained language model, corpus and benchmark[J]. arXiv preprint arXiv:2302.09432, 2023.
+[18] Fatemi S, Hu Y. A comparative analysis of fine-tuned LLMs and few-shot learning of LLMs for financial sentiment analysis[J]. arXiv preprint arXiv:2312.08725, 2023.
 
-[19] Hu E J, Shen Y, Wallis P, et al. LoRA: Low-rank adaptation of large language models[C]//International Conference on Learning Representations. 2022.
+[19] Paredes Amorin A, Python A, Weisser C. Fine-tuning of lightweight large language models for sentiment classification on heterogeneous financial textual data[J]. arXiv preprint arXiv:2512.00946, 2025.
 
-[20] Dettmers T, Pagnoni A, Holtzman A, et al. QLoRA: Efficient finetuning of quantized LLMs[C]//Advances in Neural Information Processing Systems. 2023.
+[20] Guo C, Pleiss G, Sun Y, et al. On calibration of modern neural networks[C]//International Conference on Machine Learning. 2017: 1321-1330.
 
-[21] Zheng Y, Zhang R, Zhang J, et al. LlamaFactory: Unified efficient fine-tuning of 100+ language models[C]//Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 3: System Demonstrations). Bangkok: ACL, 2024: 400-410.
+[21] Balabanov O, Linander H. Uncertainty quantification in fine-tuned LLMs using LoRA ensembles[J]. arXiv preprint arXiv:2402.12264, 2024.
 
-[22] Zhang B, Yang H, Liu X Y. Instruct-FinGPT: Financial sentiment analysis by instruction tuning of general-purpose large language models[J]. arXiv preprint arXiv:2306.12659, 2023.
+[22] Lu D, Wu H, Liang J, et al. BBT-Fin: Comprehensive construction of Chinese financial domain pre-trained language model, corpus and benchmark[J]. arXiv preprint arXiv:2302.09432, 2023.
 
-[23] Zhang B, Yang H, Zhou T, et al. Enhancing financial sentiment analysis via retrieval augmented large language models[J]. arXiv preprint arXiv:2310.04027, 2023.
+[23] Vaswani A, Shazeer N, Parmar N, et al. Attention is all you need[C]//Advances in Neural Information Processing Systems. 2017: 5998-6008.
 
-[24] Wang N, Yang H, Wang C D. FinGPT: Instruction tuning benchmark for open-source large language models in financial datasets[J]. arXiv preprint arXiv:2310.04793, 2023.
+[24] Kaplan J, McCandlish S, Henighan T, et al. Scaling laws for neural language models[J]. arXiv preprint arXiv:2001.08361, 2020.
 
-[25] Fatemi S, Hu Y. A comparative analysis of fine-tuned LLMs and few-shot learning of LLMs for financial sentiment analysis[J]. arXiv preprint arXiv:2312.08725, 2023.
+[25] Dietterich T G. Approximate statistical tests for comparing supervised classification learning algorithms[J]. Neural Computation, 1998, 10(7): 1895-1923.
 
-[26] Paredes Amorin A, Python A, Weisser C. Fine-tuning of lightweight large language models for sentiment classification on heterogeneous financial textual data[J]. arXiv preprint arXiv:2512.00946, 2025.
+[26] McNemar Q. Note on the sampling error of the difference between correlated proportions or percentages[J]. Psychometrika, 1947, 12(2): 153-157.
 
-[27] Cheng X. Financial sentiment analysis with large language models[J]. Finance & Economics, 2025, 3(6). DOI: 10.61173/gvntfv56.
+[27] Efron B, Tibshirani R J. An introduction to the bootstrap[M]. New York: Chapman & Hall, 1993.
 
-[28] Lan Y, Wu Y, Xu W, et al. Chinese fine-grained financial sentiment analysis with large language models[J]. arXiv preprint arXiv:2306.14096, 2023.
+[28] Holm S. A simple sequentially rejective multiple test procedure[J]. Scandinavian Journal of Statistics, 1979, 6(2): 65-70.
 
-[29] McNemar Q. Note on the sampling error of the difference between correlated proportions or percentages[J]. Psychometrika, 1947, 12(2): 153-157.
+[29] Chow C K. On optimum recognition error and reject tradeoff[J]. IEEE Transactions on Information Theory, 1970, 16(1): 41-46.
 
-[30] Dietterich T G. Approximate statistical tests for comparing supervised classification learning algorithms[J]. Neural Computation, 1998, 10(7): 1895-1923.
+[30] Geifman Y, El-Yaniv R. Selective classification for deep neural networks[C]//Advances in Neural Information Processing Systems. 2017.
 
-[31] Efron B, Tibshirani R J. An introduction to the bootstrap[M]. New York: Chapman & Hall, 1993.
-
-[32] Holm S. A simple sequentially rejective multiple test procedure[J]. Scandinavian Journal of Statistics, 1979, 6(2): 65-70.
-
-[33] Guo C, Pleiss G, Sun Y, et al. On calibration of modern neural networks[C]//International Conference on Machine Learning. 2017: 1321-1330.
-
-[34] Balabanov O, Linander H. Uncertainty quantification in fine-tuned LLMs using LoRA ensembles[J]. arXiv preprint arXiv:2402.12264, 2024.
-
-[35] Chow C K. On optimum recognition error and reject tradeoff[J]. IEEE Transactions on Information Theory, 1970, 16(1): 41-46.
-
-[36] Geifman Y, El-Yaniv R. Selective classification for deep neural networks[C]//Advances in Neural Information Processing Systems. 2017.
+[31] Chen W, Wang Q, Long Z, et al. DISC-FinLLM: A Chinese financial large language model based on multiple experts fine-tuning[J]. arXiv preprint arXiv:2310.15205, 2023.
