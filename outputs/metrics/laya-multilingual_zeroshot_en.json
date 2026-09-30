@@ -1,0 +1,31 @@
+{
+  "model": "laya-multilingual_zeroshot_en",
+  "accuracy": 0.5546,
+  "macro_f1": 0.5007,
+  "weighted_f1": 0.5411,
+  "per_class_f1": {
+    "消极": 0.5456,
+    "中性": 0.2743,
+    "积极": 0.6821
+  },
+  "confusion_matrix": [
+    [
+      362,
+      40,
+      59
+    ],
+    [
+      255,
+      86,
+      97
+    ],
+    [
+      249,
+      63,
+      502
+    ]
+  ],
+  "ECE": 0.2457,
+  "seconds": 35.6,
+  "mean_conf": 0.8003
+}
