@@ -6,6 +6,7 @@ SVM 没有原生概率，用 sigmoid 校准（CalibratedClassifierCV）得到三
 用法：python -m src.baselines.tfidf
 """
 import json
+import os
 import time
 
 from sklearn.calibration import CalibratedClassifierCV
@@ -33,7 +34,8 @@ def build(kind: str, c: float):
 def main() -> None:
     tr, va, te = load_split("train"), load_split("val"), load_split("test")
     results = []
-    for kind, name in [("lr", "tfidf_lr"), ("svm", "tfidf_svm")]:
+    tag = os.environ.get("RUN_TAG", "")
+    for kind, name in [("lr", "tfidf_lr" + tag), ("svm", "tfidf_svm" + tag)]:
         scores = {}
         for c in GRID:
             m = build(kind, c).fit(tr["text"], tr["label"])

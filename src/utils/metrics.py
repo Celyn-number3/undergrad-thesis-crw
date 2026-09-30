@@ -1,5 +1,6 @@
 """通用评价工具：计算指标并保存预测结果，供后续统计检验使用。"""
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -12,7 +13,9 @@ METRIC_DIR = Path("outputs/metrics")
 
 
 def load_split(split: str) -> pd.DataFrame:
-    return pd.read_json(f"data/processed/finfe/{split}.jsonl", lines=True)
+    """读取数据集；设置环境变量 FINFE_DIR 可切换到其他版本（如未清洗的 finfe_raw）。"""
+    d = os.environ.get("FINFE_DIR", "data/processed/finfe")
+    return pd.read_json(f"{d}/{split}.jsonl", lines=True)
 
 
 def evaluate(y_true, y_pred) -> dict:

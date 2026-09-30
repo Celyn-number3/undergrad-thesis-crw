@@ -50,7 +50,7 @@ def predict(model, tok, df, bs=128):
     return np.concatenate(out)
 
 
-def run(model_name, seed, epochs, lr, bs, patience):
+def run(model_name, seed, epochs, lr, bs, patience, tag=""):
     set_seed(seed)
     tr, va, te = load_split("train"), load_split("val"), load_split("test")
     tok = AutoTokenizer.from_pretrained(model_name)
@@ -80,7 +80,7 @@ def run(model_name, seed, epochs, lr, bs, patience):
     model.load_state_dict(best_state)
     probs = predict(model, tok, te)
     short = model_name.split("/")[-1]
-    res = save_run(f"{short}_s{seed}", te, probs, {
+    res = save_run(f"{short}{tag}_s{seed}", te, probs, {
         "base_model": model_name, "seed": seed, "lr": lr, "batch_size": bs,
         "best_val_macro_f1": round(best, 4), "epochs_run": ep + 1,
         "train_seconds": round(time.time() - t0, 1)})
@@ -96,9 +96,10 @@ def main():
     ap.add_argument("--lr", type=float, default=2e-5)
     ap.add_argument("--bs", type=int, default=32)
     ap.add_argument("--patience", type=int, default=2)
+    ap.add_argument("--tag", default="", help="结果文件名后缀，如 _raw")
     a = ap.parse_args()
     for s in a.seeds:
-        run(a.model, s, a.epochs, a.lr, a.bs, a.patience)
+        run(a.model, s, a.epochs, a.lr, a.bs, a.patience, a.tag)
 
 
 if __name__ == "__main__":

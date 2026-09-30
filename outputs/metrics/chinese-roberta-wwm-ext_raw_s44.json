@@ -1,0 +1,35 @@
+{
+  "model": "chinese-roberta-wwm-ext_raw_s44",
+  "accuracy": 0.7876,
+  "macro_f1": 0.7721,
+  "weighted_f1": 0.7851,
+  "per_class_f1": {
+    "消极": 0.7965,
+    "中性": 0.6685,
+    "积极": 0.8513
+  },
+  "confusion_matrix": [
+    [
+      460,
+      67,
+      47
+    ],
+    [
+      91,
+      355,
+      114
+    ],
+    [
+      30,
+      80,
+      776
+    ]
+  ],
+  "base_model": "hfl/chinese-roberta-wwm-ext",
+  "seed": 44,
+  "lr": 2e-05,
+  "batch_size": 32,
+  "best_val_macro_f1": 0.7685,
+  "epochs_run": 4,
+  "train_seconds": 99.6
+}
