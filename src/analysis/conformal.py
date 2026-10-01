@@ -15,7 +15,6 @@ MODELS = {
     "TF-IDF+LR": "tfidf_lr",
     "RoBERTa-wwm-ext": "chinese-roberta-wwm-ext_s42",
     "Qwen3-8B 零样本": "Qwen3-8B_zeroshot",
-    "Laya 零样本": "laya-multilingual_zeroshot_en",
     "Qwen3-8B LoRA": "Qwen3-8B_lora_r16_s42",
     "Qwen2.5-7B LoRA": "Qwen2.5-7B-Instruct_lora_r16_s42",
     "GLM-4-9B LoRA": "glm-4-9b-chat-hf_lora_r16_s42",
