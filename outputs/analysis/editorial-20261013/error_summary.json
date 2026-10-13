@@ -1,0 +1,309 @@
+{
+  "n": 1713,
+  "label_map": {
+    "0": "消极",
+    "1": "中性",
+    "2": "积极"
+  },
+  "inputs_sha256": {
+    "outputs\\predictions\\tfidf_lr.csv": "2c2450f958d85a4ecbf49c848cfda0ba8485233b24d242620cf8de2bc2972020",
+    "outputs\\predictions\\chinese-roberta-wwm-ext_s42.csv": "b0f1cb92eeb5fdfd195e0dbdf7a7e691894bfba2b793b862a4ab6ee0ec681193",
+    "outputs\\predictions\\Qwen3-8B_lora_r16_s42.csv": "d20cb117d0e66c15e2c94ed9b9526f107189209b36f9a66ed647b5e4dfffe9c6",
+    "data\\processed\\finfe\\test.jsonl": "663d7a689e582346cba373da221d53bd4e0212d062576629f1691f09948dc39f"
+  },
+  "models": {
+    "TF-IDF+LR": {
+      "confusion": [
+        [
+          341,
+          70,
+          50
+        ],
+        [
+          79,
+          219,
+          140
+        ],
+        [
+          47,
+          69,
+          698
+        ]
+      ],
+      "accuracy": 0.7343841214244017,
+      "macro_f1": 0.7017921884161819,
+      "errors": 455,
+      "neutral_involved_errors": 358,
+      "neutral_error_share": 0.7868131868131868,
+      "class_metrics": [
+        {
+          "class": "消极",
+          "support": 461,
+          "precision": 0.7301927194860813,
+          "recall": 0.7396963123644251,
+          "f1": 0.7349137931034483
+        },
+        {
+          "class": "中性",
+          "support": 438,
+          "precision": 0.611731843575419,
+          "recall": 0.5,
+          "f1": 0.550251256281407
+        },
+        {
+          "class": "积极",
+          "support": 814,
+          "precision": 0.786036036036036,
+          "recall": 0.8574938574938575,
+          "f1": 0.8202115158636898
+        }
+      ]
+    },
+    "RoBERTa": {
+      "confusion": [
+        [
+          395,
+          31,
+          35
+        ],
+        [
+          72,
+          252,
+          114
+        ],
+        [
+          30,
+          51,
+          733
+        ]
+      ],
+      "accuracy": 0.8056042031523643,
+      "macro_f1": 0.7806237296392772,
+      "errors": 333,
+      "neutral_involved_errors": 268,
+      "neutral_error_share": 0.8048048048048048,
+      "class_metrics": [
+        {
+          "class": "消极",
+          "support": 461,
+          "precision": 0.7947686116700201,
+          "recall": 0.8568329718004338,
+          "f1": 0.824634655532359
+        },
+        {
+          "class": "中性",
+          "support": 438,
+          "precision": 0.7544910179640718,
+          "recall": 0.5753424657534246,
+          "f1": 0.6528497409326424
+        },
+        {
+          "class": "积极",
+          "support": 814,
+          "precision": 0.8310657596371882,
+          "recall": 0.9004914004914005,
+          "f1": 0.8643867924528302
+        }
+      ]
+    },
+    "Qwen3-8B LoRA": {
+      "confusion": [
+        [
+          395,
+          31,
+          35
+        ],
+        [
+          62,
+          273,
+          103
+        ],
+        [
+          22,
+          54,
+          738
+        ]
+      ],
+      "accuracy": 0.8207822533566842,
+      "macro_f1": 0.7999093204070628,
+      "errors": 307,
+      "neutral_involved_errors": 250,
+      "neutral_error_share": 0.8143322475570033,
+      "class_metrics": [
+        {
+          "class": "消极",
+          "support": 461,
+          "precision": 0.824634655532359,
+          "recall": 0.8568329718004338,
+          "f1": 0.8404255319148937
+        },
+        {
+          "class": "中性",
+          "support": 438,
+          "precision": 0.7625698324022346,
+          "recall": 0.6232876712328768,
+          "f1": 0.6859296482412061
+        },
+        {
+          "class": "积极",
+          "support": 814,
+          "precision": 0.8424657534246576,
+          "recall": 0.9066339066339066,
+          "f1": 0.8733727810650888
+        }
+      ]
+    }
+  },
+  "paired_errors": {
+    "roberta_wrong_qwen_right": 123,
+    "roberta_right_qwen_wrong": 97,
+    "both_wrong": 210
+  },
+  "case_selection": "SHA256(error-audit-v1 + NUL + original text), two cases per ordered misclassification pair; first per pair displayed in thesis",
+  "cases": [
+    {
+      "direction": "0->1",
+      "rank_in_stratum": 1,
+      "data_row_1based": 300,
+      "csv_line": 301,
+      "text": "人民文学出版社、中华书局、商务印书馆、中华大百科,人民音乐出版社。唉可惜都不是资本喜欢的。",
+      "observed_label": "消极",
+      "qwen_pred": "中性",
+      "qwen_max_probability": 0.794436,
+      "roberta_pred": "中性",
+      "tfidf_pred": "中性"
+    },
+    {
+      "direction": "0->1",
+      "rank_in_stratum": 2,
+      "data_row_1based": 1018,
+      "csv_line": 1019,
+      "text": "无妖气,扯",
+      "observed_label": "消极",
+      "qwen_pred": "中性",
+      "qwen_max_probability": 0.964873,
+      "roberta_pred": "消极",
+      "tfidf_pred": "中性"
+    },
+    {
+      "direction": "0->2",
+      "rank_in_stratum": 1,
+      "data_row_1based": 324,
+      "csv_line": 325,
+      "text": "今天亏了4千3;不错不错;晚上吃炖好的犒劳一下自己",
+      "observed_label": "消极",
+      "qwen_pred": "积极",
+      "qwen_max_probability": 0.413606,
+      "roberta_pred": "积极",
+      "tfidf_pred": "消极"
+    },
+    {
+      "direction": "0->2",
+      "rank_in_stratum": 2,
+      "data_row_1based": 1501,
+      "csv_line": 1502,
+      "text": "起跳前不来个深挖坑?",
+      "observed_label": "消极",
+      "qwen_pred": "积极",
+      "qwen_max_probability": 0.361664,
+      "roberta_pred": "中性",
+      "tfidf_pred": "消极"
+    },
+    {
+      "direction": "1->0",
+      "rank_in_stratum": 1,
+      "data_row_1based": 921,
+      "csv_line": 922,
+      "text": "我就纳闷是哪个NT老师说35再买的",
+      "observed_label": "中性",
+      "qwen_pred": "消极",
+      "qwen_max_probability": 0.556447,
+      "roberta_pred": "中性",
+      "tfidf_pred": "中性"
+    },
+    {
+      "direction": "1->0",
+      "rank_in_stratum": 2,
+      "data_row_1based": 1576,
+      "csv_line": 1577,
+      "text": "这傻庄也太过分了......",
+      "observed_label": "中性",
+      "qwen_pred": "消极",
+      "qwen_max_probability": 0.922277,
+      "roberta_pred": "消极",
+      "tfidf_pred": "消极"
+    },
+    {
+      "direction": "1->2",
+      "rank_in_stratum": 1,
+      "data_row_1based": 1616,
+      "csv_line": 1617,
+      "text": "这跟江铜差了7元,早知道多买点江铜了",
+      "observed_label": "中性",
+      "qwen_pred": "积极",
+      "qwen_max_probability": 0.934107,
+      "roberta_pred": "积极",
+      "tfidf_pred": "积极"
+    },
+    {
+      "direction": "1->2",
+      "rank_in_stratum": 2,
+      "data_row_1based": 1085,
+      "csv_line": 1086,
+      "text": "昨天的收购公告。今天又公告。。自己懒惰所以赚不到钱。。。天道酬勤没有人亏欠你",
+      "observed_label": "中性",
+      "qwen_pred": "积极",
+      "qwen_max_probability": 0.64733,
+      "roberta_pred": "中性",
+      "tfidf_pred": "中性"
+    },
+    {
+      "direction": "2->0",
+      "rank_in_stratum": 1,
+      "data_row_1based": 29,
+      "csv_line": 30,
+      "text": "13.15到13.50为最佳位置,工厂放假生产处与半停产状态,现在买进被套后,舂节后解放",
+      "observed_label": "积极",
+      "qwen_pred": "消极",
+      "qwen_max_probability": 0.694512,
+      "roberta_pred": "积极",
+      "tfidf_pred": "积极"
+    },
+    {
+      "direction": "2->0",
+      "rank_in_stratum": 2,
+      "data_row_1based": 1666,
+      "csv_line": 1667,
+      "text": "阻断抑制剂出来比疫苗还好用,到时候诊断试剂就没用了。长期不看好试剂股,资金也不会往试剂股走",
+      "observed_label": "积极",
+      "qwen_pred": "消极",
+      "qwen_max_probability": 0.48419,
+      "roberta_pred": "积极",
+      "tfidf_pred": "积极"
+    },
+    {
+      "direction": "2->1",
+      "rank_in_stratum": 1,
+      "data_row_1based": 897,
+      "csv_line": 898,
+      "text": "感谢夏利.感谢张婷!",
+      "observed_label": "积极",
+      "qwen_pred": "中性",
+      "qwen_max_probability": 0.559455,
+      "roberta_pred": "积极",
+      "tfidf_pred": "积极"
+    },
+    {
+      "direction": "2->1",
+      "rank_in_stratum": 2,
+      "data_row_1based": 1026,
+      "csv_line": 1027,
+      "text": "明天,我要打破旧有观念,汾酒价格高了,波动的价差也大了。以后要多t",
+      "observed_label": "积极",
+      "qwen_pred": "中性",
+      "qwen_max_probability": 0.530729,
+      "roberta_pred": "积极",
+      "tfidf_pred": "积极"
+    }
+  ]
+}

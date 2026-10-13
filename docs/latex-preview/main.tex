@@ -1,0 +1,117 @@
+\documentclass[12pt,a4paper,fontset=windows]{ctexart}
+
+% === 页面设置 ===
+\usepackage[top=2.54cm,bottom=2.54cm,left=2.8cm,right=2.8cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing  % 1.5 倍行距
+
+% === 字体设置 ===
+% ctex 默认使用 Windows 字体（宋体、黑体、楷体、仿宋）
+\ctexset{
+    section/format = \centering\zihao{3}\heiti,          % 章标题：黑体三号居中
+    subsection/format = \zihao{4}\heiti,                  % 节标题：黑体四号
+    subsubsection/format = \zihao{-4}\heiti,              % 小节标题：黑体小四
+}
+
+% === 常用宏包 ===
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\captionsetup{labelsep=space}  % "图 1 xxx" 而非 "图 1: xxx"
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+\usepackage{algorithm2e}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{placeins}
+\usepackage{needspace}
+\usepackage{tocloft}
+\renewcommand{\cftsecfont}{\fontsize{10.5}{12.5}\selectfont\bfseries}
+\renewcommand{\cftsecpagefont}{\fontsize{10.5}{12.5}\selectfont\bfseries}
+\renewcommand{\cftsubsecfont}{\fontsize{10.5}{12.5}\selectfont}
+\renewcommand{\cftsubsecpagefont}{\fontsize{10.5}{12.5}\selectfont}
+\setlength{\cftbeforesecskip}{5pt}
+\setlength{\cftbeforesubsecskip}{0pt}
+\setlength{\cftaftertoctitleskip}{16pt}
+
+% === TikZ（仅用于架构图/流程图）===
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc}
+% 注意：pgfplots 仅作为备用，数据图表应使用 \includegraphics 引用 matplotlib 生成的 PDF
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% === 引用格式 GB/T 7714 ===
+\usepackage[super,sort&compress]{gbt7714}
+
+% === 页眉页脚 ===
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[C]{\zihao{5}\songti 本科毕业论文 · 修订稿}
+\fancyfoot[C]{\thepage}
+
+% === 定理环境 ===
+\newtheorem{definition}{定义}[section]
+\newtheorem{theorem}{定理}[section]
+\newtheorem{lemma}{引理}[section]
+\newtheorem{proposition}{命题}[section]
+\newtheorem{corollary}{推论}[section]
+
+
+% Preview-specific additions: no institution-specific claims.
+\setmainfont{Times New Roman}
+\setlength{\headheight}{15pt}
+\setlength{\emergencystretch}{2em}
+\ctexset{section={name={第,章},number=\arabic{section}},subsection/number=\thesection.\arabic{subsection},subsubsection/number=\thesubsection.\arabic{subsubsection}}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+\renewcommand{\thefigure}{\thesection-\arabic{figure}}
+\renewcommand{\thetable}{\thesection-\arabic{table}}
+\captionsetup{font=small}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{tocdepth}{2}
+\setcounter{topnumber}{3}
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.72}
+\hypersetup{pdftitle={基于LoRA微调的大语言模型中文金融情感分类研究}}
+
+\begin{document}
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+{\zihao{1}\heiti 本科毕业论文\par}
+\vspace{2.4cm}
+{\zihao{2}\heiti 基于LoRA微调的大语言模型\\中文金融情感分类研究\par}
+\vspace{2cm}
+{\zihao{4} 内容与版式修订稿\par}
+\vfill
+{\zihao{-4} 依据现有实验及保存预测修订\\未套学校正式模板，未填写个人与学校信息\par}
+\vspace{1cm}
+{\zihao{-4} 2026年10月13日\par}
+\end{titlepage}
+\pagenumbering{Roman}
+\section*{摘要}\addcontentsline{toc}{section}{摘要}
+\input{sections/abstract-zh}
+\clearpage
+\section*{Abstract}\addcontentsline{toc}{section}{Abstract}
+\begingroup\setstretch{1.15}\fontsize{11}{13.5}\selectfont\input{sections/abstract-en}\par\endgroup
+\clearpage\begingroup\setstretch{1.0}\fontsize{10.5}{12.5}\selectfont\tableofcontents\endgroup
+\clearpage\pagenumbering{arabic}
+\input{sections/ch1}
+\input{sections/ch2}
+\input{sections/ch3}
+\input{sections/ch4}
+\input{sections/ch5}
+\clearpage
+\phantomsection\addcontentsline{toc}{section}{参考文献}
+\begingroup\setstretch{1.15}\fontsize{10.5}{13}\selectfont\renewcommand{\bibfont}{\fontsize{10.5}{13}\selectfont}\setlength{\bibsep}{5pt}\begin{thebibliography}{99}
+\input{sections/references}
+\end{thebibliography}\endgroup
+\end{document}

@@ -27,7 +27,7 @@ def qhat(scores, alpha):
     return np.inf if k > n else np.sort(scores)[k - 1]
 
 def run(p, y, alpha, mondrian):
-    n = len(y); res = []
+    n = len(y); res = []; singleton_correct = singleton_count = 0
     for _ in range(R):
         idx = rng.permutation(n); cal, ev = idx[: n // 2], idx[n // 2:]
         s = 1 - p[cal, y[cal]]
@@ -37,9 +37,14 @@ def run(p, y, alpha, mondrian):
         else:
             S = (1 - p[ev]) <= qhat(s, alpha)
         cover = S[np.arange(len(ev)), y[ev]]; size = S.sum(1)
+        singleton = size == 1
+        singleton_correct += int((cover & singleton).sum())
+        singleton_count += int(singleton.sum())
         res.append([cover.mean(), size.mean(), (size == 1).mean(), (size == 0).mean()]
                    + [cover[y[ev] == k].mean() for k in range(3)])
-    return np.array(res).mean(0)
+    arr = np.array(res)
+    return (arr.mean(0), singleton_correct / singleton_count if singleton_count else np.nan,
+            np.quantile(arr[:, 0], [.025, .975]))
 
 rows = []
 for name, f in MODELS.items():
@@ -49,14 +54,19 @@ for name, f in MODELS.items():
     p = np.clip(p, 1e-12, None); p /= p.sum(1, keepdims=True)
     for a in ALPHAS:
         for mon in (False, True):
-            r = run(p, y, a, mon)
+            r, singleton_accuracy, split_quantiles = run(p, y, a, mon)
             rows.append({"模型": name, "目标覆盖率": 1 - a, "方法": "按类别" if mon else "标准",
                          "覆盖率": r[0], "平均集合大小": r[1], "单元素比例": r[2], "空集比例": r[3],
-                         **{f"{c}覆盖率": r[4 + i] for i, c in enumerate(CLS)}})
-df = pd.DataFrame(rows).round(4)
+                         **{f"{c}覆盖率": r[4 + i] for i, c in enumerate(CLS)},
+                         "单元素集合内准确率": singleton_accuracy,
+                         "划分覆盖率2.5%分位": split_quantiles[0], "划分覆盖率97.5%分位": split_quantiles[1]})
+df = pd.DataFrame(rows)
+# 保留既有字段的报告精度；新增条件准确率与划分分位数保留完整浮点值。
+legacy_numeric = ["目标覆盖率", "覆盖率", "平均集合大小", "单元素比例", "空集比例"] + [f"{c}覆盖率" for c in CLS]
+df[legacy_numeric] = df[legacy_numeric].round(4)
 df.to_csv(OUT / "conformal.csv", index=False, encoding="utf-8-sig")
 df.to_json(OUT / "conformal.json", orient="records", force_ascii=False, indent=1)
 md = "| " + " | ".join(df.columns) + " |\n|" + "---|" * len(df.columns) + "\n" + "\n".join("| " + " | ".join(map(str, r)) + " |" for r in df.values)
-(OUT / "conformal.md").write_text(md + "\n", "utf-8")
+(OUT / "conformal.md").write_text(md + "\n\n单元素集合内准确率为1000次划分的单元素预测汇总正确率，不具有由边际覆盖自动推出的90%保证；重复出现的样本不视为独立观测。划分分位数描述随机划分波动，不是外部泛化置信区间。\n", "utf-8")
 pd.set_option("display.width", 250); pd.set_option("display.max_columns", 20)
 print(df.to_string(index=False))

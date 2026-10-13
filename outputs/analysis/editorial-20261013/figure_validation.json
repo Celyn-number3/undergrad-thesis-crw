@@ -1,0 +1,5 @@
+{
+  "calibration_matches_archive": true,
+  "calibration_max_tolerance": 1e-10,
+  "scope": "redraw; no new training or model inference"
+}

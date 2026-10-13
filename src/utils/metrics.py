@@ -37,8 +37,10 @@ def save_run(name: str, test_df: pd.DataFrame, probs: np.ndarray, extra: dict | 
     out = test_df[["text", "label"]].copy()
     out["pred"] = pred
     for i in range(3):
-        out[f"p{i}"] = probs[:, i].round(6)
-    out.to_csv(PRED_DIR / f"{name}.csv", index=False, encoding="utf-8-sig")
-    m = {"model": name, **evaluate(test_df["label"].values, pred), **(extra or {})}
+        out[f"p{i}"] = probs[:, i]  # 保留输入浮点精度；历史 CSV 不在此回填
+    out.to_csv(PRED_DIR / f"{name}.csv", index=False, encoding="utf-8-sig", float_format="%.17g")
+    m = {"model": name, **evaluate(test_df["label"].values, pred), **(extra or {}),
+         "probability_storage": "unrounded_float_roundtrip_17g",
+         "probability_input_dtype": str(probs.dtype)}
     (METRIC_DIR / f"{name}.json").write_text(json.dumps(m, ensure_ascii=False, indent=2) + "\n", "utf-8")
     return m

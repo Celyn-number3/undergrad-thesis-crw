@@ -1,0 +1,219 @@
+\clearpage\section{相关研究与评价方法}
+
+本章先梳理与研究问题直接相关的实证与方法工作，再说明本文如何把模型输出转换为可比较的统计证据。重点不是罗列模型原理，而是交代各项方法能够回答什么、不能回答什么。
+
+\FloatBarrier\subsection{相关研究与本文定位}
+
+\subsubsection{从领域适配到中文金融任务}
+
+金融文本中的词语情感依赖领域语境，通用词表可能误解财务术语\cite{ref6}。FinBERT 在 Financial PhraseBank 与 FiQA 等金融任务上研究预训练语言模型的适配\cite{ref8}；Financial PhraseBank 本身也以不同标注一致性水平组织数据\cite{ref20}。这些工作提示：表征能力与标签定义必须一起讨论，不能只比较模型大小。
+
+随着生成式大模型发展，Instruct-FinGPT 将监督情感数据转换为指令数据，关注金融数值与语境理解\cite{ref16}；BBT-Fin 则构建中文金融语料、模型与涵盖理解和生成的评测基准\cite{ref19}。较新的轻量大模型研究已比较 Qwen3-8B 等模型，并包含 Chinese Finance Sentiment 数据\cite{ref18}。因此，中文任务与低资源微调并非空白；本文必须说明相同方法在何种数据版本与评估口径下产生什么证据，而非重复``首次用于中文''的叙述。
+
+\subsubsection{从分类分数到可靠性证据}
+
+单一准确率不能同时说明模型是否稳定、概率是否可信以及何时应该拒答。训练算法比较中的随机性问题已有系统讨论\cite{ref21}；温度缩放关注概率与频率的一致性\cite{ref22}；选择性分类关注风险与覆盖的权衡\cite{ref23}；LoRA 集成研究则从低秩适配的后验近似角度量化不确定性\cite{ref24}。这些是不同问题的解决工具，不能把其中一个指标改善解释为``模型全面可靠''。
+
+\begin{table}[htbp]
+\centering
+\begin{minipage}{\textwidth}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.16}
+\setstretch{1.0}\fontsize{10.5}{13.5}\selectfont
+\caption{代表性研究的证据侧重点与本文衔接}\label{tab:2-1}
+\begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.200000\linewidth-1.600000\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.230000\linewidth-1.840000\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.250000\linewidth-2.000000\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.320000\linewidth-2.560000\tabcolsep\relax}}
+\toprule
+\textbf{研究} & \textbf{任务或数据范围} & \textbf{核心侧重点} & \textbf{本文的对应取舍} \\
+\midrule
+FinBERT\cite{ref8} & Financial PhraseBank、FiQA & 金融领域适配与分类表现 & 将强编码器作为基线；不跨语言、跨划分直接比较分数 \\
+BBT-\allowbreak{}Fin\cite{ref19} & 中文金融理解与生成基准 & 语料、模型及统一基准建设 & 审计实际下载的 FinFE 文件，区分论文划分与公开文件 \\
+Instruct-\allowbreak{}FinGPT\cite{ref16} & 金融情感任务 & 指令微调、数值及语境理解 & 比较提示与监督微调；用错误案例检查局部语境 \\
+轻量 LLM 比较\cite{ref18} & 五个金融数据集，含中文 & 模型、数据量与多场景泛化 & 不将中文 Qwen3 微调视为新方法；重点审计当前比较的可信度 \\
+温度缩放\cite{ref22} & 现代神经网络分类 & 事后概率校准 & 使用分折拟合，披露内部评估及概率精度限制 \\
+LoRA 集成\cite{ref24} & Mistral-\allowbreak{}7B 与三个多项选择任务 & 低秩适配集成的不确定性 & 本文未复现集成；多种子比较不等同于集成后验推断 \\
+\bottomrule\end{tabular}
+\par\vspace{3pt}{\fontsize{10}{12.5}\selectfont 注：本表比较研究目标与本文取舍，不是统一排行榜，也不声称未在表中列出的分析在相应论文中不存在。\par}
+\end{minipage}
+\end{table}
+
+\subsubsection{本文补充的实证证据}
+
+上述研究分别提供了领域适配、任务资源和可靠性方法。本文将它们用于同一批可追溯的预测，形成从数据质量到效应区间、概率校准和失效案例的证据链。其增量是当前 FinFE 公开文件版本下的审计与综合评价，不是新的 LoRA 算法，也不是对已有所有模型的全面复现。下文仅保留理解这一评价设计所需的模型与统计方法。
+
+\FloatBarrier\subsection{文本表示与传统机器学习方法}
+
+\subsubsection{TF-\allowbreak{}IDF 文本表示}
+
+TF-IDF 将字符片段转换为稀疏向量。本文实现使用次线性词频与平滑逆文档频率：对在文档 d 中出现的片段 t，未归一化权重为：
+
+\begin{equation}\operatorname{tfidf}(t,d)=[1+\log\operatorname{tf}(t,d)]\left\{1+\log\frac{1+N}{1+\operatorname{df}(t)}\right\}\tag{2-1}\label{eq:2-1}\end{equation}
+
+其中 tf(t, d) 为出现次数，N 为文档数，df(t) 为包含片段 t 的文档数；未出现片段权重为零，最后对文档向量作 L2 归一化。该式对应实验代码的 sublinear\_tf=True 及默认平滑 IDF，而非不带平滑的简化公式。
+
+本文采用 1～3 元字符 n-gram，不依赖分词。它保留短片段内部顺序，但不显式建模较远上下文，适合作为检验复杂模型增益的低成本基线。
+
+\subsubsection{逻辑回归}
+
+多分类逻辑回归（softmax 回归）假设样本 x 属于第 k 类的概率为：
+
+\begin{equation}P(y=k\mid x)=\frac{\exp(w_k\cdot x+b_k)}{\sum_j\exp(w_j\cdot x+b_j)}\tag{2-2}\label{eq:2-2}\end{equation}
+
+模型参数通过最大化训练数据的对数似然（等价于最小化交叉熵损失）估计，并通常加入 L2 正则项防止过拟合。逻辑回归结构简单、训练快，能直接输出类别概率，是文本分类中常用的基线方法。
+
+\subsubsection{支持向量机}
+
+线性支持向量机（SVM）的思想是在特征空间中寻找一个超平面，使两类样本之间的间隔最大。其优化目标为：
+
+\begin{equation}\min\;\frac12\lVert w\rVert^2+C\sum_i\max\!\left(0,1-y_i(w\cdot x_i+b)\right)\tag{2-3}\label{eq:2-3}\end{equation}
+
+其中 C 控制对误分类的惩罚强度。多分类问题可以通过``一对其余''的方式转化为多个二分类问题。TF-IDF 特征维度高而稀疏，线性 SVM 在这类数据上通常表现良好。
+
+\FloatBarrier\subsection{预训练语言模型}
+
+\subsubsection{Transformer 与自注意力机制}
+
+Transformer\cite{ref25} 是目前主流语言模型的基础结构，其核心是自注意力（self-attention）机制。对于输入序列，每个位置的向量通过三个线性变换分别得到查询 Q、键 K 和值 V，注意力输出为：
+
+\begin{equation}\operatorname{Attention}(Q,K,V)=\operatorname{softmax}\!\left(\frac{QK^{\mathsf T}}{\sqrt{d_k}}\right)V\tag{2-4}\label{eq:2-4}\end{equation}
+
+其中 d\_k 为查询和键的维度。相对于字符片段基线，自注意力提供上下文相关表示；本文不修改注意力结构\cite{ref25}。
+
+\subsubsection{BERT 与 RoBERTa-\allowbreak{}wwm-\allowbreak{}ext}
+
+BERT\cite{ref7} 使用双向编码器及掩码预训练。本文采用标准序列分类微调，在预训练表示上接分类层，并更新全部参数。
+
+在中文场景中，Cui 等\cite{ref9}提出了全词掩码（whole word masking）策略：遮盖时以词为单位，而不是只遮盖单个汉字，使模型更好地学习词级语义。RoBERTa-wwm-ext 在此基础上采用了 RoBERTa 的训练方式，并使用了更大规模的中文语料，是中文文本分类中常用的强基线。本文不把通用中文 RoBERTa 描述为金融领域专用模型。
+
+\FloatBarrier\subsection{大语言模型与参数高效微调}
+
+\subsubsection{大语言模型}
+
+本文选取 Qwen3-8B\cite{ref11}、Qwen2.5-7B-Instruct 和 GLM-4-9B-Chat 三个生成式开源模型，分别比较提示与微调。通用缩放规律\cite{ref26} 不保证特定金融任务上的优势，仍须与监督编码器在相同划分上直接比较。
+
+\subsubsection{零样本与少样本提示}
+
+大模型可以不经训练、直接通过提示词（prompt）完成分类任务。零样本（zero-shot）提示只给出任务说明和待分类文本，例如``判断下面这条股民评论的情感倾向，只回答消极、中性或积极''；少样本（few-shot）提示则在任务说明后附上若干带标签的示例，让模型通过上下文学习（in-context learning）模仿示例作答\cite{ref10}。提示方法不需要训练，但效果依赖提示词的设计，且通常不如有监督微调。
+
+\subsubsection{基于标签词的概率提取}
+
+生成式大模型输出的是文本，而统计评价和校准分析需要每个类别的概率。本文采用标签词概率提取的方法：在提示词末尾让模型生成答案时，读取模型在第一个输出位置上对三个标签词（``消极''\,``中性''\,``积极''）首个词元的 logit 值 z\_k，再做 softmax 归一化：
+
+\begin{equation}p_k=\frac{\exp(z_k)}{\sum_j\exp(z_j)},\quad k\in\{\text{消极},\text{中性},\text{积极}\}\tag{2-5}\label{eq:2-5}\end{equation}
+
+取概率最大的类别作为预测结果，最大概率作为模型的置信度。这种做法保证了输出一定落在三个类别之内，也使大模型可以和 BERT 等模型一样计算校准指标。
+
+\subsubsection{LoRA 低秩适配}
+
+全参数微调需要更新模型的全部参数。以 80 亿参数的模型为例，仅参数、梯度和优化器状态就需要上百 GB 显存，远超单张消费级显卡的容量。参数高效微调方法只训练少量新增参数，其中 LoRA（low-rank adaptation）\cite{ref14} 是最常用的一种。
+
+LoRA 的基本假设是：模型在适应新任务时，权重的变化量是``低秩''的，即可以用两个小矩阵的乘积近似。对于预训练权重 W\(_{0}\) \(\in\) \(\mathbb{R}\)\^{}(d\(\times\)k)，LoRA 冻结 W\(_{0}\)，只训练两个低秩矩阵 B \(\in\) \(\mathbb{R}\)\^{}(d\(\times\)r) 和 A \(\in\) \(\mathbb{R}\)\^{}(r\(\times\)k)：
+
+\begin{equation}h=W_0x+\Delta Wx=W_0x+\frac{\alpha}{r}BAx\tag{2-6}\label{eq:2-6}\end{equation}
+
+其中秩 r 远小于 d 和 k（本文取 4～32），\(\alpha\) 为缩放系数。初始化时 B 为零矩阵，使训练开始时模型与原模型完全相同。本文的主比较保持秩固定，额外消融才改变 r，以免把模型家族差异与秩选择混为一谈。
+
+\subsubsection{QLoRA 量化微调}
+
+QLoRA\cite{ref15} 将冻结的基础权重量化，并训练低秩适配器。本文采用 4-bit NF4、双重量化和 bf16 计算，与非量化配置作单次比较；是否节省资源、分数相差多少由实验报告，不预先假定两者等效。
+
+\FloatBarrier\subsection{分类评价指标}
+
+设测试集中第 k 类的真正例、假正例和假反例个数分别为 TP\_k、FP\_k 和 FN\_k，则该类的精确率、召回率和 F1 值为：
+
+\begin{equation}\begin{aligned}P_k&=\frac{\mathrm{TP}_k}{\mathrm{TP}_k+\mathrm{FP}_k},\quad R_k=\frac{\mathrm{TP}_k}{\mathrm{TP}_k+\mathrm{FN}_k},\\ \mathrm{F1}_k&=\frac{2P_kR_k}{P_k+R_k}\end{aligned}\tag{2-7}\label{eq:2-7}\end{equation}
+
+准确率（accuracy）为预测正确的样本占全部样本的比例。宏平均 F1（Macro-F1）为各类别 F1 的简单平均：
+
+\begin{equation}\text{Macro-F1}=\frac1K\sum_k\mathrm{F1}_k\tag{2-8}\label{eq:2-8}\end{equation}
+
+准确率容易被样本多的类别主导。本文数据中积极类约占一半，若模型偏向预测积极，准确率仍可能较高，而宏平均 F1 对每个类别一视同仁，更能反映模型在少数类上的表现，因此本文以宏平均 F1 为主要指标。
+
+\FloatBarrier\subsection{模型比较的统计检验}
+
+模型分数之间的差异可能来自两种随机性：一是\textbf{训练随机性}，即同一模型换一个随机种子重新训练，分数也会波动；二是\textbf{测试样本抽样误差}，即测试集只是所有可能样本中的一个有限样本，换一批测试样本，分数也会不同\cite{ref21}。本文针对这两种来源分别使用不同的检验方法。
+
+\subsubsection{方差分析与多重比较}
+
+针对训练随机性，本文对 BERT、RoBERTa 和三个 LoRA 大模型分别用 r 个不同随机种子各训练一次，把每次的宏平均 F1 看作一个观测值，用单因素方差分析（ANOVA）检验各模型的平均分数是否相同。其检验统计量为：
+
+\begin{equation}F=\frac{\sum_i n_i(\bar y_i-\bar y)^2/(g-1)}{\sum_i\sum_j(y_{ij}-\bar y_i)^2/(N-g)}\tag{2-9}\label{eq:2-9}\end{equation}
+
+其中 g 为模型个数，\(\bar y\)\_i 为第 i 个模型的平均分数，\(\bar y\) 为总平均。F 值越大，说明模型间差异相对于种子间波动越大。当各组方差可能不等时，可使用 Welch 方差分析作为稳健性检验。若方差分析显著，再用 Tukey HSD 检验进行两两比较，它在所有两两比较中同时控制第一类错误率。
+
+\subsubsection{McNemar 检验}
+
+针对测试样本抽样误差，McNemar 检验\cite{ref27} 用于比较两个模型在同一测试集上的准确率。设 b 为模型甲正确而模型乙错误的样本数，c 为模型甲错误而模型乙正确的样本数，在``两模型准确率相同''的原假设下，b 应服从参数为 (b + c, 0.5) 的二项分布；样本较多时，也可用统计量：
+
+\begin{equation}\chi^2=\frac{(\lvert b-c\rvert-1)^2}{b+c}\tag{2-10}\label{eq:2-10}\end{equation}
+
+近似服从自由度为 1 的卡方分布。该检验只利用两个模型预测不一致的样本，考虑了两模型在同一批样本上的配对关系，是比较分类器的常用方法\cite{ref21}。
+
+\subsubsection{配对 Bootstrap 置信区间}
+
+宏平均 F1 不是简单的比例，难以写出其差值的解析分布。Bootstrap 方法\cite{ref28} 通过重抽样来近似统计量的抽样分布：从 n 个测试样本中有放回地抽取 n 个，组成一个新的测试集，在其上计算两个模型的 F1 差值；重复 B 次，取差值的 2.5\% 和 97.5\% 分位数作为单个比较的 95\% 百分位区间。``配对''指两个模型每次都在同一批重抽样样本上计算，从而保留两者的相关性。本文对模型间差值采用 B = 50000，固定重抽样种子为 20261012；将五个主要比较模型的全部十对构成一个比较家族，另报告 Bonferroni 调整后的 0.25\% 和 99.75\% 分位数区间，以获得名义 95\% 的家族同时覆盖率。该区间仍依赖 Bootstrap 近似，单个未调整区间不跨 0 不能直接解释为多重比较后的显著结果。单模型、单次运行的区间仍使用 B = 2000，两种口径分别标注。
+
+\subsubsection{Holm 多重比较校正}
+
+同时进行 m 次检验时，即使每次检验的显著性水平都是 0.05，至少出现一次误判的概率也会明显增大。Holm 方法\cite{ref29} 将 m 个 p 值从小到大排序为 p\(_{(1)}\) \(\le\) \ldots{} \(\le\) p\(_{(m)}\)，依次将 p\(_{(i)}\) 与 \(\alpha\)/(m \(-\) i + 1) 比较，一旦某个 p 值不满足条件，就停止并不再拒绝其后原假设。等价地，校正后的 p 值为：
+
+\begin{equation}\tilde p_{(i)}=\max_{j\le i}\min\{1,(m-j+1)p_{(j)}\}\tag{2-11}\label{eq:2-11}\end{equation}
+
+Holm 方法在控制总体第一类错误率的同时，比 Bonferroni 校正更不保守。
+
+\FloatBarrier\subsection{置信度校准}
+
+\subsubsection{校准的含义与度量}
+
+如果一个模型对一批样本给出的置信度都是 80\%，那么这批样本中应当约 80\% 被预测正确，这样的模型称为``校准良好''的模型。研究发现，现代深度神经网络往往过度自信，即置信度系统性地高于实际准确率\cite{ref22}；LoRA 微调的大模型也存在类似问题\cite{ref24}。
+
+期望校准误差（expected calibration error, ECE）是最常用的校准度量。将样本按置信度划分为 M 个区间（本文取 M = 15），第 m 个区间的样本集合为 B\_m，则：
+
+\begin{equation}\mathrm{ECE}=\sum_m\frac{\lvert B_m\rvert}{n}\,\bigl\lvert\operatorname{acc}(B_m)-\operatorname{conf}(B_m)\bigr\rvert\tag{2-12}\label{eq:2-12}\end{equation}
+
+其中 acc(B\_m) 和 conf(B\_m) 分别为该区间内的实际准确率和平均置信度。ECE 越小，校准越好。以横轴为置信度、纵轴为准确率画出的图称为可靠性图，完全校准的模型应落在对角线上。
+
+\subsubsection{温度缩放}
+
+温度缩放（temperature scaling）\cite{ref22} 是一种简单有效的校准方法：用一个标量 T \textgreater{} 0 除以模型输出的 logit，再做 softmax：
+
+\begin{equation}p_k=\frac{\exp(z_k/T)}{\sum_j\exp(z_j/T)}\tag{2-13}\label{eq:2-13}\end{equation}
+
+T \textgreater{} 1 会使概率分布更``平''，降低过高的置信度；T \textless{} 1 则相反。T 通常在一组留出样本上通过最小化负对数似然确定（本文的具体做法见 3.7.3 节，采用测试集上的 5 折交叉拟合）。由于除以同一个正数不改变 logit 的大小顺序，温度缩放不会改变预测类别和准确率，只调整置信度。
+
+\FloatBarrier\subsection{选择性预测}
+
+在实际应用中，模型可以对没把握的样本``拒绝回答''，交给人工处理，这称为选择性预测（selective prediction）\cite{ref23,ref30}。具体做法是设定置信度阈值 \(\tau\)，只对置信度不低于 \(\tau\) 的样本给出预测。被模型回答的样本占全部样本的比例称为\textbf{覆盖率}，在这些样本上的错误率称为\textbf{风险}。
+
+阈值越高，覆盖率越低，但被回答样本的准确率通常越高。将阈值从高到低变化，可以得到风险---覆盖率曲线，曲线下面积 AURC（area under the risk-coverage curve）综合反映了模型的置信度排序能力：AURC 越小，说明模型越能把错误样本排在低置信度的位置。与 ECE 关注``置信度的数值是否准确''不同，AURC 关注``置信度的高低顺序是否合理''。
+
+\FloatBarrier\subsection{保形预测}
+
+选择性预测只能给出``回答或不回答''，保形预测（conformal prediction）\cite{ref31,ref32} 则给出一个类别集合，并提供有限样本下的覆盖率保证。以分割保形预测为例：取一组未参与训练的校准样本，计算每个样本的非一致性分数 s\_i = 1 \(-\) p(y\_i \textbar{} x\_i)，即模型给真实类别的概率越低，分数越高；取分数的修正分位数
+
+\begin{equation}\hat q=s\text{ 的第 }\lceil(n+1)(1-\alpha)\rceil\text{ 个次序统计量}\tag{2-14}\label{eq:2-14}\end{equation}
+
+对新样本输出集合 C(x) = \{k : 1 \(-\) p\_k(x) \(\le\) \(\hat q\)\}。只要校准样本与新样本是可交换的（如独立同分布），就有
+
+\begin{equation}P\bigl(y\in C(x)\bigr)\ge 1-\alpha\tag{2-15}\label{eq:2-15}\end{equation}
+
+这一保证不依赖于模型是否校准良好，也不需要指定某个参数分布族，但仍要求校准样本与新样本的交换性，并保持预测模型和评分规则固定。它是对校准集与新样本随机性取平均后的边际保证，不保证每次固定划分的经验覆盖率都达到目标。平均集合大小反映预测集合的效率，但不能单独代替对子群覆盖和适应性的评估。
+
+需要注意的是，式（2-15）只保证整体（边际）覆盖率，某些困难类别的覆盖率可能低于 1 \(-\) \(\alpha\)；筛选出的单元素集合也不会自动获得同样的条件正确率保证。Mondrian 保形预测\cite{ref31} 对每一类别分别计算 \(\hat q\)，在相应类内交换性条件下给出类别条件覆盖保证，但这仍不同于``单元素答案正确率''的保证。
+
+\FloatBarrier\subsection{标注一致性与标签噪声}
+
+有监督学习使用观测标签作为学习目标，但标签之间可能存在分歧。对固定两名标注者，Cohen \(\kappa\) 可写为：
+
+\begin{equation}\kappa=\frac{p_o-p_e}{1-p_e}\tag{2-16}\label{eq:2-16}\end{equation}
+
+其中 p\_o 为观察一致率，p\_e 为两名标注者类别边际比例乘积之和。本文没有固定标注者身份，重复也未必来自独立复标，故只定义描述性的 K\_pair = (p\_o \(-\) p\_e,pair)/(1 \(-\) p\_e,pair)，其中 p\_e,pair = \(\Sigma\)\_c \(\pi\)\_c\(^{2}\)，\(\pi\)\_c 为配对两端汇总类别比例。它与一致率采用同一配对加权口径，不解释标注者可靠性，也不称为标准 Cohen \(\kappa\)。
+
+进一步，假设给定真实类别后，两次标注相互独立、均以相同概率 q 标对，标错时等可能地选择其余两类，则 p\_o = q\(^{2}\) + (1 \(-\) q)\(^{2}\)/2。取 q \(\ge\) 1/3 的分支可得：
+
+\begin{equation}q=\frac{1+\sqrt{6p_o-2}}{3}\tag{2-17}\label{eq:2-17}\end{equation}
+
+q 仅在上述独立、同质、对称噪声假设下有意义。缺少独立复标与金标准、重复文本非随机、清洗改变样本构成，均使它不能被解释为测试集实测上限或人工水平。
+
+\FloatBarrier\subsection{本章小结}
+
+本章把领域适配研究与统计评价问题衔接起来：模型提供分类与概率输出，多种子和配对分析分别考察不同不确定性，校准、选择性预测与保形预测回答不同可靠性问题。本文使用这些已有方法构造可复核评价，不将它们作为新算法；第 3 章给出具体实施口径。

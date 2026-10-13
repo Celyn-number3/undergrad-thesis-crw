@@ -37,7 +37,9 @@ plt.rcParams["axes.unicode_minus"] = False
 PRED = Path("outputs/predictions")
 OUT = Path("outputs/analysis")
 LABELS = ["消极", "中性", "积极"]
-N_BOOT = 2000
+N_BOOT = 2000  # 单模型、单次运行的区间，保留原口径
+N_PAIR_BOOT = 50000
+PAIR_BOOT_SEED = 20261012
 RNG = np.random.default_rng(2026)
 
 # 主比较中的模型：显示名 -> 文件名前缀（多种子文件形如 前缀_s42.csv）
@@ -117,6 +119,7 @@ def main_table():
                      "准确率均值": np.mean(accs), "准确率标准差": np.std(accs, ddof=1) if len(fs) > 1 else np.nan,
                      "MacroF1均值": np.mean(f1s), "MacroF1标准差": np.std(f1s, ddof=1) if len(fs) > 1 else np.nan,
                      "MacroF1_CI下限": lo, "MacroF1_CI上限": hi,
+                     "MacroF1种子42或单次": macro_f1(y, p.argmax(1)),
                      "消极F1": pc[0], "中性F1": pc[1], "积极F1": pc[2], "各次MacroF1": [round(v, 4) for v in f1s]})
     return pd.DataFrame(rows)
 
@@ -145,20 +148,52 @@ def mcnemar_all():
 
 
 # ------------------------------------------------------------------ 3 配对 Bootstrap
+def bootstrap_f1_samples(y, predictions, n_boot, seed, batch_size=250):
+    """同一组样本索引用于所有模型；通过混淆矩阵批量计算三分类 Macro-F1。"""
+    rng = np.random.default_rng(seed)
+    result = {name: [] for name in predictions}
+    for start in range(0, n_boot, batch_size):
+        size = min(batch_size, n_boot - start)
+        idx = rng.integers(0, len(y), size=(size, len(y)))
+        offsets = np.arange(size)[:, None] * 9
+        for name, pred in predictions.items():
+            cm = np.bincount((offsets + 3 * y[idx] + pred[idx]).ravel(),
+                             minlength=size * 9).reshape(size, 3, 3)
+            tp = np.diagonal(cm, axis1=1, axis2=2)
+            denom = cm.sum(1) + cm.sum(2)
+            f1 = np.divide(2 * tp, denom, out=np.zeros_like(tp, dtype=float), where=denom != 0)
+            result[name].append(f1.mean(1))
+    return {name: np.concatenate(values) for name, values in result.items()}
+
+
 def paired_bootstrap():
-    data = {}
+    data, reference = {}, None
     for name in PAIRWISE:
-        if files_for(MAIN[name]):
-            y, p = load(seed42(MAIN[name]))
-            data[name] = p.argmax(1)
-    n = len(y)
-    idx = [RNG.integers(0, n, n) for _ in range(N_BOOT)]
+        if not files_for(MAIN[name]):
+            raise FileNotFoundError(f"缺少计划比较的模型：{name}")
+        d = pd.read_csv(seed42(MAIN[name]))
+        keys = list(zip(d.text, d.label))
+        if reference is None:
+            reference, y = keys, d.label.to_numpy()
+        elif keys != reference:
+            raise ValueError(f"测试样本或顺序不一致：{name}")
+        data[name] = d[["p0", "p1", "p2"]].to_numpy().argmax(1)
+    pairs = list(combinations(data, 2))
+    # 本轮修订明确将五模型的全部十对作为一个比较家族，不事后挑选显著比较。
+    family_size = len(pairs)
+    samples = bootstrap_f1_samples(y, data, N_PAIR_BOOT, PAIR_BOOT_SEED)
     rows = []
-    for a, b in combinations(data, 2):
-        d = np.array([macro_f1(y[i], data[a][i]) - macro_f1(y[i], data[b][i]) for i in idx])
-        rows.append({"模型A": a, "模型B": b, "F1差值(A-B)": macro_f1(y, data[a]) - macro_f1(y, data[b]),
-                     "CI下限": np.percentile(d, 2.5), "CI上限": np.percentile(d, 97.5),
-                     "单侧p(A<=B)": float((d <= 0).mean())})
+    for a, b in pairs:
+        delta = samples[a] - samples[b]
+        lo, hi = np.quantile(delta, [.025, .975])
+        adj_lo, adj_hi = np.quantile(delta, [.05 / (2 * family_size), 1 - .05 / (2 * family_size)])
+        rows.append({"模型A": a, "模型B": b,
+                     "F1差值(A-B)": macro_f1(y, data[a]) - macro_f1(y, data[b]),
+                     "CI下限": lo, "CI上限": hi,
+                     "Bonferroni下限": adj_lo, "Bonferroni上限": adj_hi,
+                     "比较家族大小": family_size, "重抽样次数": N_PAIR_BOOT,
+                     "重抽样种子": PAIR_BOOT_SEED,
+                     "调整区间不含0": bool(adj_lo > 0 or adj_hi < 0)})
     return pd.DataFrame(rows)
 
 
@@ -262,7 +297,10 @@ def calibration():
         e2, m2, c2 = ece_mce(y, ps)
         rows.append({"模型": name, "平均置信度": float(p.max(1).mean()), "准确率": float((p.argmax(1) == y).mean()),
                      "ECE": e, "MCE": m, "Brier": brier(y, p), "NLL": nll(y, p),
-                     "温度T(均值)": float(np.mean(ts)), "缩放后ECE": e2, "缩放后Brier": brier(y, ps), "缩放后NLL": nll(y, ps)})
+                     "温度T(均值)": float(np.mean(ts)), "缩放后ECE": e2, "缩放后Brier": brier(y, ps), "缩放后NLL": nll(y, ps),
+                     "真实类概率为零条数": int((p[np.arange(len(y)), y] == 0).sum()),
+                     "NLL及取log截断下限": 1e-12,
+                     "估计范围": "当前测试分布内五折交叉拟合；非独立外部评估"})
         curves[name], scaled[name] = c, c2
     return pd.DataFrame(rows), curves, scaled
 
@@ -296,15 +334,15 @@ def selective():
 
 # ------------------------------------------------------------------ 图
 def plot_models(tab):
-    t = tab[~tab["模型"].str.contains("TF-IDF\\+SVM")].sort_values("MacroF1均值")
+    t = tab[~tab["模型"].str.contains("TF-IDF+SVM", regex=False)].sort_values("MacroF1种子42或单次")
     fig, ax = plt.subplots(figsize=(8, 5.5))
     colors = ["#4c72b0" if "LoRA" in m else "#dd8452" if ("样本" in m) else "#55a868" for m in t["模型"]]
-    err = np.vstack([t["MacroF1均值"] - t["MacroF1_CI下限"], t["MacroF1_CI上限"] - t["MacroF1均值"]])
-    ax.barh(t["模型"], t["MacroF1均值"], xerr=err, color=colors, capsize=3)
-    for i, v in enumerate(t["MacroF1均值"]):
-        ax.text(v + 0.012, i, f"{v:.3f}", va="center", fontsize=8)
+    err = np.vstack([t["MacroF1种子42或单次"] - t["MacroF1_CI下限"], t["MacroF1_CI上限"] - t["MacroF1种子42或单次"]])
+    ax.barh(t["模型"], t["MacroF1种子42或单次"], xerr=err, color=colors, capsize=3)
+    for i, (v, upper) in enumerate(zip(t["MacroF1种子42或单次"], t["MacroF1_CI上限"])):
+        ax.text(upper + 0.004, i, f"{v:.3f}", va="center", fontsize=8)
     ax.set_xlim(0.55, 0.88); ax.set_xlabel("Macro-F1（误差线：Bootstrap 95% 置信区间）")
-    ax.set_title("各模型测试集 Macro-F1")
+    ax.set_title("各模型测试集 Macro-F1（种子42或单次运行）")
     fig.tight_layout(); fig.savefig(OUT / "fig_model_comparison.png", dpi=200); plt.close(fig)
 
 
@@ -401,7 +439,8 @@ def main():
     L = ["# 统计评估结果", "", "由 `src/analysis/stats.py` 自动生成。测试集 n = 1713。", "",
          "## 表 4-1 主结果", "", "多种子模型给出均值与标准差；置信区间为种子 42 运行的 Bootstrap 95% CI。", "", md(t),
          "## 表 4-2 McNemar 检验（Holm 校正）", "", md(mc),
-         "## 表 4-3 配对 Bootstrap：Macro-F1 差值", "", md(bs),
+         "## 表 4-3 配对 Bootstrap：Macro-F1 差值", "",
+         f"B={N_PAIR_BOOT}，抽样种子={PAIR_BOOT_SEED}；五模型全部10对为一个比较家族，Bonferroni端点为0.25%和99.75%，名义家族覆盖率95%，仍为百分位Bootstrap近似。", "", md(bs),
          "## 表 4-4 方差分析（各模型多个种子的 Macro-F1）", "",
          f"- 各组：{an['组']}",
          f"- 单因素 ANOVA：F = {an['ANOVA']['F']}，p = {an['ANOVA']['p']}",
@@ -410,7 +449,8 @@ def main():
     if "ANOVA_仅LoRA大模型" in an:
         L.append(f"- 仅三个 LoRA 大模型：F = {an['ANOVA_仅LoRA大模型']['F']}，p = {an['ANOVA_仅LoRA大模型']['p']}")
     L += ["", "Tukey HSD 事后比较：", "", md(pd.DataFrame(an["Tukey_HSD"])),
-          "## 表 4-5 校准指标", "", md(cal),
+          "## 表 4-5 校准指标", "",
+          "历史概率只存六位小数；零概率取1e-12后计算的NLL和温度受截断约定影响。精度敏感性见 probability_precision.csv。当前温度为测试分布内五折交叉拟合，不是已独立验证的部署参数。", "", md(cal),
           "## 表 4-6 选择性预测", "", md(sel),
           "## 表 4-7 消融实验（Qwen3-8B，种子 42）", "", md(abl)]
     (OUT / "summary.md").write_text("\n".join(L), "utf-8")

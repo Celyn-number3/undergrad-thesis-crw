@@ -7,3 +7,29 @@ logs/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+
+# 本机运行环境、Agent 配置与凭据（不随仓库上传）
+/runtime/
+/.claude/
+/.env
+/.env.*
+!/.env.example
+!/.env.sample
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+
+# LaTeX 编译缓存（保留源文件、图片和最终 PDF）
+/docs/latex-preview/*.aux
+/docs/latex-preview/*.log
+/docs/latex-preview/*.toc
+/docs/latex-preview/*.out
+/docs/latex-preview/*.lof
+/docs/latex-preview/*.lot
+/docs/latex-preview/*.fls
+/docs/latex-preview/*.fdb_latexmk
+/docs/latex-preview/*.xdv
+/docs/latex-preview/*.synctex.gz
