@@ -15,6 +15,7 @@ LoRA 训练的损失就是这个位置上正确标签词的交叉熵，
   python -m src.llm.run_llm --model models/Qwen3-8B --mode lora --seed 42 --rank 16
   python -m src.llm.run_llm --model models/Qwen3-8B --mode lora --load-4bit      # QLoRA
   python -m src.llm.run_llm --model models/Qwen3-8B --mode lora --train-size 1000  # 样本量消融
+  python -m src.llm.run_llm --model models/Qwen3-8B --mode lora --save-adapter     # 另存 LoRA adapter
 """
 import argparse
 import json
@@ -34,6 +35,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, set_seed  # noqa: 
 from src.utils.metrics import load_split, save_run  # noqa: E402
 
 LABEL_WORDS = ["消极", "中性", "积极"]
+CKPT_DIR = Path("outputs/checkpoints")  # LoRA adapter 保存位置，已在 .gitignore 中排除
 SYSTEM = "你是一名金融文本情感分析助手。"
 INSTRUCTION = ("请判断下面这条股民评论的情感倾向，只能回答“消极”“中性”“积极”三者之一，不要输出其他内容。\n"
                "评论：{text}")
@@ -166,6 +168,25 @@ def train_lora(model, tok, ids, tr, va, a):
     return model, best, history, n_train
 
 
+def lora_run_name(name: str, a) -> str:
+    """LoRA 运行名，与结果文件名一致（不含 --tag 后缀）。"""
+    return f"{name}_lora_r{a.rank}" + ("_4bit" if a.load_4bit else "") + \
+        (f"_n{a.train_size}" if a.train_size else "") + f"_s{a.seed}"
+
+
+def save_adapter(model, out_dir: Path, meta: dict) -> None:
+    """保存验证集最优的 LoRA 参数（PEFT adapter）和训练元数据；不保存基座模型。"""
+    from importlib.metadata import version
+    out_dir.mkdir(parents=True, exist_ok=True)
+    if any(out_dir.iterdir()):
+        raise FileExistsError(f"adapter 目录非空，未覆盖：{out_dir}")
+    model.save_pretrained(str(out_dir))
+    meta = {**meta, "versions": {p: version(p) for p in ("torch", "transformers", "peft")},
+            "saved_at": time.strftime("%Y-%m-%d %H:%M:%S")}
+    (out_dir / "training_meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2) + "\n", "utf-8")
+    print(f"  已保存 LoRA adapter：{out_dir}", flush=True)
+
+
 # ---------------------------------------------------------------- 主程序
 def main():
     ap = argparse.ArgumentParser()
@@ -183,7 +204,16 @@ def main():
     ap.add_argument("--load-4bit", action="store_true", help="4-bit 量化加载（QLoRA）")
     ap.add_argument("--limit", type=int, default=0, help="调试：只评估前 N 条测试样本")
     ap.add_argument("--tag", default="", help="结果文件名后缀")
+    ap.add_argument("--save-adapter", action="store_true",
+                    help="LoRA：训练后把验证集最优 adapter 保存到 outputs/checkpoints/<运行名>/（默认不保存）")
     a = ap.parse_args()
+    adapter_dir = None
+    if a.save_adapter:  # 在读取数据和加载模型之前检查，避免白白训练
+        if a.mode != "lora":
+            ap.error("--save-adapter 只能与 --mode lora 一起使用")
+        adapter_dir = CKPT_DIR / (lora_run_name(Path(a.model).name, a) + a.tag)
+        if adapter_dir.exists() and any(adapter_dir.iterdir()):
+            ap.error(f"adapter 目录已存在且非空，为避免覆盖已停止：{adapter_dir}")
 
     set_seed(a.seed)
     tr, va, te = load_split("train"), load_split("val"), load_split("test")
@@ -212,8 +242,16 @@ def main():
                       "train_size": len(tr), "best_val_macro_f1": round(best, 4),
                       "val_macro_f1_history": hist, "trainable_params": n_train,
                       "peak_gpu_gb": round(torch.cuda.max_memory_allocated() / 1e9, 2)})
-        run = f"{name}_lora_r{a.rank}" + ("_4bit" if a.load_4bit else "") + \
-              (f"_n{a.train_size}" if a.train_size else "") + f"_s{a.seed}"
+        run = lora_run_name(name, a)
+        if adapter_dir is not None:  # 训练结束后立即保存，再做测试集预测
+            save_adapter(model, adapter_dir, {
+                "run": run + a.tag, "base_model": a.model, "args": vars(a),
+                "label_words": LABEL_WORDS, "label_token_ids": ids,
+                "system_prompt": SYSTEM, "instruction": INSTRUCTION,
+                "data_dir": os.environ.get("FINFE_DIR", "data/processed/finfe"),
+                "train_examples": len(tr), "best_val_macro_f1": round(best, 4),
+                "val_macro_f1_history": hist, "trainable_params": n_train})
+            extra["adapter_dir"] = adapter_dir.as_posix()
     run += a.tag
     probs = predict_probs(model, tok, list(te["text"]), ids, shots, bs=a.eval_bs)
     extra["seconds"] = round(time.time() - t0, 1)

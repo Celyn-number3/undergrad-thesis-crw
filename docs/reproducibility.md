@@ -14,7 +14,7 @@
 | FinFE 数据、完整日志、`.claude/`、Git 历史包 | 独立加密备份 | 见第 8 节 |
 | 基座模型 | 从上游重新下载 | 见第 4 节，按校验值核对 |
 | `runtime/` | 按第 3 节重建 | 不进入仓库、Release 或核心备份 |
-| LoRA 微调权重 | 不存在 | 见第 6 节 |
+| LoRA 微调权重 | 历史运行未保存；新运行可用 `--save-adapter` 保存到 `outputs/checkpoints/`（不入库） | 见第 6 节 |
 
 ## 2. 实验环境
 
@@ -95,9 +95,36 @@ sha256sum -c --ignore-missing configs/assets-sha256.txt
 
 ## 6. LoRA 微调权重
 
-`src/llm/run_llm.py` 的 `train_lora()` 只在内存中保留验证集最优的 LoRA 参数，用于测试集预测后结束。当前代码和 Git 历史中都没有保存 adapter 的调用，本地也不存在 adapter 或训练状态文件，因此没有可以放入 Release 或备份的微调权重。
+论文中的 17 次 LoRA/QLoRA 运行都没有保存 adapter：当时 `src/llm/run_llm.py` 的 `train_lora()` 只在内存中保留验证集最优的 LoRA 参数，用于测试集预测后结束；Git 历史中没有保存调用，本地也不存在 adapter 或训练状态文件。因此目前没有可以放入 Release 或备份的微调权重。
 
-现有 `outputs/predictions/`（逐条概率）和 `outputs/metrics/` 足以支持论文中的统计分析，但不能在不重新训练的情况下对新文本推理。论文中的 17 次 LoRA/QLoRA 运行合计约 31,312 秒（约 8.7 小时，RTX 3090）。重新训练可得到新的 adapter，但 GPU 非确定性可能使结果与论文数字略有差异；修改训练代码或重新训练需另行确认。
+现有 `outputs/predictions/`（逐条概率）和 `outputs/metrics/` 足以支持论文中的统计分析，但不能在不重新训练的情况下对新文本推理。这 17 次运行合计约 31,312 秒（约 8.7 小时，RTX 3090）；GPU 非确定性可能使重新训练的结果与论文数字略有差异，是否重新训练需另行确认。
+
+### 保存新运行的 adapter
+
+2026-10-13 起，`src/llm/run_llm.py` 增加默认关闭的 `--save-adapter` 选项，只能与 `--mode lora` 一起使用：
+
+```bash
+python -m src.llm.run_llm --model models/Qwen3-8B --mode lora --seed 42 --save-adapter
+```
+
+- 训练结束后、测试集预测之前，把验证集最优的 LoRA 参数保存到 `outputs/checkpoints/<运行名>/`；运行名与结果文件名相同，如 `Qwen3-8B_lora_r16_s42`。
+- 目录内容：`adapter_config.json`、`adapter_model.safetensors`、PEFT 自动生成的 `README.md`，以及记录命令参数、标签词、提示词、最佳验证 F1 和软件版本的 `training_meta.json`。
+- 目标目录已存在且非空时，在读取数据和加载模型之前停止，不覆盖已有 adapter。
+- 不加该选项时，训练、预测和结果文件与原来相同。
+- adapter 只含 LoRA 参数（float32），r=16 时 Qwen3-8B 约 175 MB、Qwen2.5-7B 约 160 MB、GLM-4-9B 约 110 MB，不含基座模型。`outputs/checkpoints/` 不进入 Git；保存后应加入独立加密备份，或在许可允许时作为 Release 附件。
+
+加载已保存的 adapter 做推理：
+
+```python
+from peft import PeftModel
+from src.llm.run_llm import label_token_ids, load_model, predict_probs
+
+tok, base = load_model("models/Qwen3-8B", load_4bit=False)  # QLoRA 运行改为 True
+model = PeftModel.from_pretrained(base, "outputs/checkpoints/Qwen3-8B_lora_r16_s42")
+probs = predict_probs(model, tok, texts, label_token_ids(tok))  # texts：待分类评论列表；列依次为消极、中性、积极
+```
+
+2026-10-13 的验证未进行训练：参数检查和覆盖保护已用命令行测试；在 CPU 微型模型上确认保存的 LoRA 张量与模型一致，重新加载后输出 logits 完全相同。真实 7–9B 模型上的保存和上述加载示例尚未实际运行。
 
 ## 7. Release
 
