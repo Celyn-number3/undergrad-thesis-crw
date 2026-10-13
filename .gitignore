@@ -8,9 +8,11 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 
-# 本机运行环境、Agent 配置与凭据（不随仓库上传）
+# 本机运行环境、Agent 本地副本与凭据（不随仓库上传；.claude 只保留项目规则和版本记录）
 /runtime/
-/.claude/
+/.claude/*
+!/.claude/CLAUDE.md
+!/.claude/ars-install.json
 /.env
 /.env.*
 !/.env.example

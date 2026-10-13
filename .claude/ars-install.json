@@ -1,0 +1,19 @@
+{
+  "repository": "https://github.com/Imbad0202/academic-research-skills",
+  "version": "3.23.0",
+  "commit": "d1e51716e53fc371727ea6164dd709fc8ea28c97",
+  "archive_sha256": "d34f6ecdf27d65a64167e51b83fef2a0ce6016193c1da303be55bd9016f4f07c",
+  "installed_at_utc": "2026-10-12T11:09:32.710618+00:00",
+  "channel": "project-skills-copy",
+  "active_skills": [
+    "academic-paper-reviewer",
+    "academic-paper",
+    "deep-research"
+  ],
+  "source_root": ".claude/vendor/academic-research-skills",
+  "source_file_count": 2839,
+  "license": "CC-BY-NC-4.0",
+  "hooks_enabled": false,
+  "global_config_modified": false,
+  "notes": "Full pinned upstream source retained for cross-skill references and Python scripts. Only the three selected skills are copied into the project skills directory. No upstream installer or hook was executed."
+}

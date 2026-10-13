@@ -3,12 +3,13 @@
 > 应用统计学本科毕业论文项目
 
 远程仓库：[Celyn-number3/undergrad-thesis-crw](https://github.com/Celyn-number3/undergrad-thesis-crw)（私有）。
+论文与实验快照见 [Releases](https://github.com/Celyn-number3/undergrad-thesis-crw/releases)；环境、模型、数据、Release 和备份说明见 [复现与资产说明](docs/reproducibility.md)。
 
 ## Agent 工作入口
 
 开始任务前，请读 [Skills 使用指南中的项目操作约定](skills/README.md)。本项目采用 **skill/README 指导 + Agent 按需执行 + 复用现有脚本**，不为使用技能引入 Modex 后端、Electron、数据库或新工具框架。
 
-`skills/` 是参考流程和资源；`runtime/` 是已复制的本地运行环境，不等于自动启用。已有统计代码和 Word 生成链路保留，缺失能力按实际任务处理，不照搬旧迁移计划。`runtime/` 约 8 GB，现已由 `.gitignore` 排除；本机运行环境、Agent 配置和凭据不随仓库推送。
+`skills/` 是参考流程和资源；`runtime/` 是已复制的本地运行环境，不等于自动启用。已有统计代码和 Word 生成链路保留，缺失能力按实际任务处理，不照搬旧迁移计划。`runtime/` 约 8 GB，现已由 `.gitignore` 排除；本机运行环境、凭据和第三方 Agent 技能副本不随仓库推送，`.claude/` 只提交 `CLAUDE.md` 与 `ars-install.json`。
 
 ## 研究简介
 
@@ -38,6 +39,7 @@
 
 - GPU：NVIDIA RTX 3090（24GB）
 - 工具：Python、PyTorch、transformers、peft、scikit-learn、statsmodels
+- 锁定版本：`requirements-lock.txt`、`environment.yml`；数据和模型校验值：`configs/assets-sha256.txt`
 
 ## 目录结构
 

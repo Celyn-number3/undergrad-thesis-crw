@@ -37,3 +37,7 @@ Topics：
 - 新提交使用新账号的 GitHub noreply 身份；历史作者保持原样。
 - 后续先查看 `git status`，仅添加本次确需提交且已检查的文件，再使用 `git push origin main`。
 - 不使用强制推送、历史重写或工作区清理来完成迁移。
+
+## 后续调整
+
+2026-10-13 按资产整理方案：`.claude/CLAUDE.md` 与 `.claude/ars-install.json` 改为入库；新增依赖锁定文件、数据与模型校验清单、Release 快照和独立加密备份。详见 [复现与资产说明](reproducibility.md)。
